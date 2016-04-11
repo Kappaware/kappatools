@@ -1,0 +1,26 @@
+
+apply plugin: 'java'
+
+repositories {
+    jcenter()
+}
+
+apply plugin: 'eclipse'
+
+// Refer to https://issues.gradle.org/browse/GRADLE-1010
+eclipseJdt << {
+	File f = file('.settings/org.eclipse.core.resources.prefs')
+   	f.write('eclipse.preferences.version=1\n')
+   	f.append('encoding/<project>=UTF-8')
+}
+
+
+
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.18'
+    compile 'log4j:log4j:1.2.14'
+    compile 'commons-cli:commons-cli:1.3.1'
+    compile 'org.apache.kafka:kafka-clients:0.9.0.1'
+    testCompile 'junit:junit:4.12'
+}
+
