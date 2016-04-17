@@ -19,6 +19,7 @@ eclipseJdt << {
 dependencies {
    compile 'org.slf4j:slf4j-log4j12:1.7.21'
     compile 'log4j:log4j:1.2.14'
+    compile 'com.fasterxml.jackson.jr:jackson-jr-objects:2.7.3'
     compile 'org.apache.kafka:kafka-clients:0.9.0.1'
     compile 'net.sf.jopt-simple:jopt-simple:5.0.1'
     testCompile 'junit:junit:4.12'

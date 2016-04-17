@@ -9,6 +9,16 @@ public interface Configuration {
 	String getTargetTopic();
 
 	Properties getProducerProperties();
+	
+	long getInitialCounter();
+
+	int getBurstCount();
+
+	String getGateId();
+
+	long getPeriod();
+
+	long getStatsPeriod();
 
 
 }

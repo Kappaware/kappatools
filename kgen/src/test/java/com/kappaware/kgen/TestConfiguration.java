@@ -40,17 +40,18 @@ public class TestConfiguration {
 
 	@Test
 	public void test1() throws ConfigurationException {
-		String[] argv = {  "--targetBroker", "yy:9092", "--targetTopic", "t2" };
+		String[] argv = {  "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1" };
 
 		Configuration config = new ConfigurationImpl(new Parameters(argv));
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t2", config.getTargetTopic());
 		assertEquals(targetProperties1, config.getProducerProperties());
+		assertEquals("gen1", config.getGateId());
 	}
 
 	@Test
 	public void testMandatoryTargetBroker() throws ConfigurationException {
-		String[] argv = { "--targetTopic", "t2"};
+		String[] argv = { "--targetTopic", "t2", "--gateId", "gen1"};
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -63,7 +64,7 @@ public class TestConfiguration {
 	// ------------------------------------------ Target properties
 	@Test
 	public void testInvalidTargetProperties1() throws ConfigurationException {
-		String[] argv = {"--targetBroker", "yy:9092", "--targetTopic", "t2", "--targetProperties", "aa=xx" };
+		String[] argv = {"--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1", "--targetProperties", "aa=xx" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -75,7 +76,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testInvalidTargetProperties2() throws ConfigurationException {
-		String[] argv = {"--targetBroker", "yy:9092", "--targetTopic", "t2", "--targetProperties", "aa" };
+		String[] argv = {"--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1", "--targetProperties", "aa" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -87,7 +88,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testInvalidTargetProperties3() throws ConfigurationException {
-		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2", "--targetProperties", "aa=" };
+		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1", "--targetProperties", "aa=" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -99,7 +100,7 @@ public class TestConfiguration {
 	
 	@Test
 	public void testInvalidTargetProperties4() throws ConfigurationException {
-		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2",  "--targetProperties", "=xx" };
+		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1",  "--targetProperties", "=xx" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -112,7 +113,7 @@ public class TestConfiguration {
 	
 	@Test
 	public void testEmptyTargetProperties5() throws ConfigurationException {
-		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2",  "--targetProperties", "" };
+		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1",  "--targetProperties", "" };
 		
 		Configuration config = new ConfigurationImpl(new Parameters(argv));
 		assertEquals("yy:9092", config.getTargetBrokers());
@@ -123,7 +124,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testForceInvalidTargetProperties() throws ConfigurationException {
-		String[] argv = {  "--targetBroker", "yy:9092", "--targetTopic", "t2", "--targetProperties", "aa=xx", "--forceProperties" };
+		String[] argv = {  "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1", "--targetProperties", "aa=xx", "--forceProperties" };
 
 		Properties props2 = (Properties) targetProperties1.clone(); 
 		props2.put("aa", "xx");
@@ -136,7 +137,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testTwoTargetProperties() throws ConfigurationException {
-		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2", 
+		String[] argv = { "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1", 
 				"--targetProperties", "acks=all,client.id=toto" };
 
 		Properties props2 = (Properties) targetProperties1.clone(); 
@@ -151,7 +152,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testTwoTargetPropertiesWithSpaces() throws ConfigurationException {
-		String[] argv = {  "--targetBroker", "yy:9092", "--targetTopic", "t2",
+		String[] argv = {  "--targetBroker", "yy:9092", "--targetTopic", "t2", "--gateId", "gen1",
 				"--targetProperties", " acks = all , client.id = toto " };
 
 		Properties props2 = (Properties) targetProperties1.clone(); 

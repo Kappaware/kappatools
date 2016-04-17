@@ -19,9 +19,8 @@ public class Main {
 		Configuration config;
 		try {
 			config = new ConfigurationImpl(new Parameters(argv));
-			
-			
-			
+			Engine engine = new Engine(config);
+			engine.run();
 		} catch(ConfigurationException e) {
 			log.error(e.getMessage());
 			System.exit(1);

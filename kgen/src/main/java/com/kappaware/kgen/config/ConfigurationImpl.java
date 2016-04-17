@@ -145,4 +145,29 @@ public class ConfigurationImpl implements Configuration {
 		return this.producerProperties;
 	}
 
+	@Override
+	public long getInitialCounter() {
+		return this.parameters.getInitialCounter();
+	}
+
+	@Override
+	public int getBurstCount() {
+		return this.parameters.getBurstCount();
+	}
+
+	@Override
+	public String getGateId() {
+		return this.parameters.getGateId();
+	}
+
+	@Override
+	public long getPeriod() {
+		return this.parameters.getPeriod();
+	}
+
+	@Override
+	public long getStatsPeriod() {
+		return this.parameters.getStatsPeriod();
+	}
+
 }
