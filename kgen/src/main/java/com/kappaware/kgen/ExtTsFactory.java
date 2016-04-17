@@ -11,7 +11,7 @@ package com.kappaware.kgen;
  */
 public class ExtTsFactory {
 	private String gateId;
-	private long lastCounter = 0;
+	private long nextCounter = 0;
 	
 	public ExtTsFactory(String gateId) {
 		this.gateId = gateId;
@@ -19,12 +19,16 @@ public class ExtTsFactory {
 
 	public ExtTsFactory(String gateId, long initialCounter) {
 		this.gateId = gateId;
-		this.lastCounter = initialCounter;
+		this.nextCounter = initialCounter;
 	}
 	
 	public synchronized ExtTs get() {
 		long now = System.currentTimeMillis();
-		return new ExtTs(now, gateId, lastCounter++); 
+		return new ExtTs(now, gateId, nextCounter++); 
+	}
+
+	public long getNextCounter() {
+		return nextCounter;
 	}
 
 }

@@ -12,9 +12,10 @@ import org.slf4j.LoggerFactory;
 
 import com.kappaware.kgen.config.Configuration;
 
-public class Engine {
+public class Engine extends Thread {
 	static Logger log = LoggerFactory.getLogger(Engine.class);
 
+	private boolean running = true;
 	private Configuration config;
 	private KafkaProducer<Key, String> producer;
 	private ExtTsFactory factory;
@@ -28,9 +29,9 @@ public class Engine {
 		this.factory = new ExtTsFactory(config.getGateId(), config.getInitialCounter());
 	}
 
-	public void run() throws InterruptedException {
+	public void run() {
 		startTime = System.currentTimeMillis();
-		while (true) {
+		while (running) {
 			int partitionCount = this.producer.partitionsFor(this.config.getTargetTopic()).size();
 			//log.trace(String.format("Partition count:%d", partitionCount));
 
@@ -43,9 +44,34 @@ public class Engine {
 				producer.send(new ProducerRecord<Key, String>(this.config.getTargetTopic(), partition, key, value));
 				this.stats.inc(partition);
 			}
-			Thread.sleep(config.getPeriod());
-			this.printStats();
+			try {
+				Thread.sleep(config.getPeriod());
+			} catch (InterruptedException e) {
+				log.debug("Interrupted in normal sleep!");
+			}
+			this.printStats("", false);
 		}
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			// This case is normal in case of period = 0. In such case, interrupted flag was not cleared
+			log.debug("Interrupted in end of thread processing!");
+		}
+		try {
+			Thread.sleep(100);
+		} catch (InterruptedException e) {
+			log.warn("Too many interruption in end of thread processing!");
+		}
+		this.producer.flush();
+		this.producer.close();
+		log.info("KGEN END");
+		this.printStats("", true);
+		log.info(String.format("Next counter:%d", this.factory.getNextCounter()));
+	}
+
+	void halt() {
+		this.running = false;
+		this.interrupt();
 	}
 
 	static class Stats {
@@ -76,18 +102,17 @@ public class Engine {
 
 	}
 
-	void printStats() {
+	void printStats(String prefix, boolean force) {
 		long now = System.currentTimeMillis();
-		if (this.lastPrintStats + this.config.getStatsPeriod() < now) {
+		if ((this.config.getStatsPeriod() != 0 && this.lastPrintStats + this.config.getStatsPeriod() < now) || force) {
 			this.lastPrintStats = now;
 			long ellapsed = now - this.startTime;
 			long nbrSec = (ellapsed / 1000);
-			if (nbrSec > 0) { // Otherwise, irrelevant and div/0
-				long nbrHours = nbrSec / 3600;
-				long nbrMinutes = nbrSec / 60 - (nbrHours * 60);
-				long nbrSec2 = nbrSec - (nbrMinutes * 60) - (nbrHours * 3600);
-				log.info(String.format("After %02d:%02d:%02d, sent %d messages (%d mess/sec).  By partition: %s", nbrHours, nbrMinutes, nbrSec2, this.stats.getCount(), this.stats.getCount() / nbrSec, this.stats.partitionStats()));
-			}
+			double messPerSecond = (new Double(this.stats.getCount()) / ellapsed) * 1000;
+			long nbrHours = nbrSec / 3600;
+			long nbrMinutes = nbrSec / 60 - (nbrHours * 60);
+			long nbrSec2 = nbrSec - (nbrMinutes * 60) - (nbrHours * 3600);
+			log.info(String.format("%sAfter %02d:%02d:%02d, sent %d messages (%.2f mess/sec).  By partition: %s", prefix, nbrHours, nbrMinutes, nbrSec2, this.stats.getCount(), messPerSecond, this.stats.partitionStats()));
 		}
 
 	}
