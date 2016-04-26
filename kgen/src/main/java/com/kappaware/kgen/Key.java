@@ -33,11 +33,11 @@ public class Key extends Header {
 	
 	private String recipient;
 	
-	public Key(ExtTs extTs) {
-		super(extTs, null);
+	public Key(ExtTs extTs, HeaderBuilder headerBuilder) {
+		super();
 		// Arrange to first name being almost random, but dependendant of the counter value.
 		this.recipient = firstNames[ Utils.abs(Utils.murmur2(Long.toString(extTs.getCounter()).getBytes())) % firstNames.length ];
-		this.setPartitionKey(recipient);
+		headerBuilder.build(this, extTs, this.recipient);
 	}
 	
 	public String getRecipient() {

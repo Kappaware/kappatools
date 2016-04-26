@@ -32,8 +32,8 @@ import joptsimple.OptionSpec;
 public class Parameters {
 	static Logger log = LoggerFactory.getLogger(Parameters.class);
 
-	private String targetBrokers;
-	private String targetTopic;
+	private String brokers;
+	private String topic;
 	
 	private String targetProperties;
 	private boolean forceProperties;
@@ -49,11 +49,11 @@ public class Parameters {
 		parser.formatHelpWith(new BuiltinHelpFormatter(120,2));
 	}
 
-	static OptionSpec<String> TARGET_BROKERS_OPT = parser.accepts("targetBrokers", "Comma separated values of Target Kafka brokers").withRequiredArg().describedAs("br8:9092,br9:9092").ofType(String.class).required();
-	static OptionSpec<String> TARGET_TOPIC_OPT = parser.accepts("targetTopic", "Target topic").withRequiredArg().describedAs("topic").ofType(String.class).required();
+	static OptionSpec<String> BROKERS_OPT = parser.accepts("brokers", "Comma separated values of Target Kafka brokers").withRequiredArg().describedAs("br8:9092,br9:9092").ofType(String.class).required();
+	static OptionSpec<String> TOPIC_OPT = parser.accepts("topic", "Target topic").withRequiredArg().describedAs("topic").ofType(String.class).required();
 	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generatorId").withRequiredArg().describedAs("someId").ofType(String.class).required();
 	
-	static OptionSpec<String> TARGET_PROPERTIES_OPT = parser.accepts("targetProperties", "Target (Producer) properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
+	static OptionSpec<String> TARGET_PROPERTIES_OPT = parser.accepts("properties", "Producer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
 	static OptionSpec<?> FORCE_PROPERTIES_OPT = parser.accepts("forceProperties", "Force unsafe properties");
 
 	static OptionSpec<Long> INITIAL_COUNTER_OPT = parser.accepts("initialCounter", "Initial counter value").withRequiredArg().describedAs("counter").ofType(Long.class).defaultsTo(0L);
@@ -78,8 +78,8 @@ public class Parameters {
 				throw new MyOptionException(String.format("Unknow option '%s'", result.nonOptionArguments().get(0)));
 			}
 			// Mandatories parameters
-			this.targetBrokers = result.valueOf(TARGET_BROKERS_OPT);
-			this.targetTopic = result.valueOf(TARGET_TOPIC_OPT);
+			this.brokers = result.valueOf(BROKERS_OPT);
+			this.topic = result.valueOf(TOPIC_OPT);
 			this.targetProperties = result.valueOf(TARGET_PROPERTIES_OPT);
 			this.forceProperties = result.has(FORCE_PROPERTIES_OPT);
 			this.initialCounter = result.valueOf(INITIAL_COUNTER_OPT);
@@ -112,17 +112,17 @@ public class Parameters {
 	// --------------------------------------------------------------------------
 
 
-	public String getTargetBrokers() {
-		return targetBrokers;
+	public String getBrokers() {
+		return brokers;
 	}
 
 
-	public String getTargetTopic() {
-		return targetTopic;
+	public String getTopic() {
+		return topic;
 	}
 
 
-	public String getTargetProperties() {
+	public String getProperties() {
 		return targetProperties;
 	}
 

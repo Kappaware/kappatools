@@ -35,6 +35,7 @@ public class Engine extends Thread {
 	private Configuration config;
 	private KafkaProducer<Key, String> producer;
 	private ExtTsFactory factory;
+	private HeaderBuilder headerBuilder;
 	private long startTime;
 	private long lastPrintStats = 0L;
 	private Stats stats = new Stats();
@@ -43,21 +44,22 @@ public class Engine extends Thread {
 		this.config = config;
 		this.producer = new KafkaProducer<Key, String>(config.getProducerProperties(), new JsonSerializer<Key>(false), new StringSerializer());
 		this.factory = new ExtTsFactory(config.getGateId(), config.getInitialCounter());
+		this.headerBuilder = new HeaderBuilder();
 	}
 
 	public void run() {
 		startTime = System.currentTimeMillis();
 		while (running) {
-			int partitionCount = this.producer.partitionsFor(this.config.getTargetTopic()).size();
+			int partitionCount = this.producer.partitionsFor(this.config.getTopic()).size();
 			//log.trace(String.format("Partition count:%d", partitionCount));
 
 			for (int i = 0; i < config.getBurstCount(); i++) {
 				ExtTs extTs = this.factory.get();
-				Key key = new Key(extTs);
+				Key key = new Key(extTs, headerBuilder);
 				String value = String.format("Message #%d for %s from %s", extTs.getCounter(), key.getRecipient(), extTs.getGateId());
 				int partition = Utils.abs(Utils.murmur2(key.getRecipient().getBytes())) % partitionCount;
 				//log.trace(String.format("Pushing message to kafka to partition %d", partition));
-				producer.send(new ProducerRecord<Key, String>(this.config.getTargetTopic(), partition, key, value));
+				producer.send(new ProducerRecord<Key, String>(this.config.getTopic(), partition, key, value));
 				this.stats.inc(partition);
 			}
 			try {

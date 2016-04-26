@@ -112,12 +112,12 @@ public class ConfigurationImpl implements Configuration {
 		this.parameters = parameters;
 
 		this.producerProperties = new Properties();
-		this.producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getTargetBrokers());
+		this.producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getBrokers());
 		this.producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 		this.producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 
-		if (this.parameters.getTargetProperties() != null && this.parameters.getTargetProperties().trim().length() > 0) {
-			String[] sp = this.parameters.getTargetProperties().split(",");
+		if (this.parameters.getProperties() != null && this.parameters.getProperties().trim().length() > 0) {
+			String[] sp = this.parameters.getProperties().split(",");
 			for (String s : sp) {
 				String[] prp = s.trim().split("=");
 				if(prp.length != 2) {
@@ -146,13 +146,13 @@ public class ConfigurationImpl implements Configuration {
 
 
 	@Override
-	public String getTargetBrokers() {
-		return parameters.getTargetBrokers();
+	public String getBrokers() {
+		return parameters.getBrokers();
 	}
 
 	@Override
-	public String getTargetTopic() {
-		return parameters.getTargetTopic();
+	public String getTopic() {
+		return parameters.getTopic();
 	}
 
 

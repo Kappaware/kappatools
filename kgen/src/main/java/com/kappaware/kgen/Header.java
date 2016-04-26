@@ -20,15 +20,11 @@ package com.kappaware.kgen;
 public class Header {
 	private ExtTs extTs;
 	private String partitionKey;
+	private long keyCounter;
 	
-	// To be instanciated by json parser
 	public Header() {
 	}
 
-	public Header(ExtTs extTs, String partitionKey) {
-		this.extTs = extTs;
-		this.partitionKey = partitionKey;
-	}
 	
 	public ExtTs getExtTs() {
 		return extTs;
@@ -43,6 +39,16 @@ public class Header {
 
 	public void setPartitionKey(String partitionKey) {
 		this.partitionKey = partitionKey;
+	}
+
+
+	public long getKeyCounter() {
+		return keyCounter;
+	}
+
+
+	public void setKeyCounter(long keyCounter) {
+		this.keyCounter = keyCounter;
 	}
 	
 }

@@ -28,12 +28,14 @@ import com.fasterxml.jackson.jr.ob.JSONObjectException;
 
 public class TestHeader {
 	private ExtTsFactory extTsFactory;
+	private HeaderBuilder headerBuilder;
 	private JSON json;
 	
 	
 	@Before
 	public void setup() {
 		this.extTsFactory = new ExtTsFactory("test2");
+		this.headerBuilder = new HeaderBuilder();
 		json = JSON.std;
 		
 	}
@@ -42,8 +44,9 @@ public class TestHeader {
 		private String otherStuff;
 		private ExtTs otherExtTs;
 
-		public ExtHeader1(ExtTs extTs, String partitionKey) {
-			super(extTs, partitionKey);
+		public ExtHeader1(ExtTs extTs, HeaderBuilder headerBuilder, String partitionKey) {
+			super();
+			headerBuilder.build(this, extTs, partitionKey);
 		}
 
 		public String getOtherStuff() {
@@ -113,7 +116,7 @@ public class TestHeader {
 	
 	@Test
 	public void testSubClassing() throws JSONObjectException, IOException {
-		ExtHeader1 extHeader = new ExtHeader1(this.extTsFactory.get(), "abcd");
+		ExtHeader1 extHeader = new ExtHeader1(this.extTsFactory.get(), headerBuilder, "abcd");
 		extHeader.setOtherStuff("otherStuff");
 		extHeader.setOtherExtTs(this.extTsFactory.get());
 		
@@ -143,4 +146,21 @@ public class TestHeader {
 		assertEquals("test2", h.getExtTs().getGateId());
 	}
 
+	
+	@Test
+	public void testBuilderCount() {
+		ExtHeader1 extHeader1 = new ExtHeader1(this.extTsFactory.get(), headerBuilder, "abcd");
+		ExtHeader1 extHeader2 = new ExtHeader1(this.extTsFactory.get(), headerBuilder, "1234");
+		ExtHeader1 extHeader3 = new ExtHeader1(this.extTsFactory.get(), headerBuilder, "abcd");
+		ExtHeader1 extHeader4 = new ExtHeader1(this.extTsFactory.get(), headerBuilder, "abcd");
+		ExtHeader1 extHeader5 = new ExtHeader1(this.extTsFactory.get(), headerBuilder, "1234");
+		
+		assertEquals(0L, extHeader1.getKeyCounter());
+		assertEquals(0L, extHeader2.getKeyCounter());
+		assertEquals(1L, extHeader3.getKeyCounter());
+		assertEquals(2L, extHeader4.getKeyCounter());
+		assertEquals(1L, extHeader5.getKeyCounter());
+		
+		
+	}
 }

@@ -19,9 +19,9 @@ import java.util.Properties;
 
 public interface Configuration {
 
-	String getTargetBrokers();
+	String getBrokers();
 
-	String getTargetTopic();
+	String getTopic();
 
 	Properties getProducerProperties();
 	
