@@ -36,11 +36,9 @@ public class Engine extends Thread {
 	private boolean running = true;
 	private Configuration config;
 	private KafkaConsumer<Object, Object> consumer;
-	private Stats currentState;
+	private Stats currentStats;
 	private Stack<Stats> history = new Stack<Stats>();
 	private boolean dumpMessage = false;
-	
-	
 
 	public Engine(Configuration config) {
 		this.config = config;
@@ -53,39 +51,49 @@ public class Engine extends Thread {
 
 			@Override
 			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
-				if (log.isDebugEnabled()) {
-					log.debug(String.format("ConsumerRebalanceListener - Revoked partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
-				}
+				log.info(String.format("ConsumerRebalanceListener - Revoked partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
 			}
 
 			@Override
 			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
-				log.debug(String.format("ConsumerRebalanceListener - Assigned partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
-				if(currentState != null) {
-					history.push(currentState);
+				log.info(String.format("ConsumerRebalanceListener - Assigned partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
+				if (currentStats != null) {
+					history.push(currentStats);
 				}
-				currentState = new Stats(partitions);
+				currentStats = new Stats(partitions);
 			}
 		});
 
 		while (running) {
 			ConsumerRecords<Object, Object> records = consumer.poll(100);
-			for (ConsumerRecord<Object, Object> record : records) { 
-				if(this.dumpMessage) {
+			for (ConsumerRecord<Object, Object> record : records) {
+				if (this.dumpMessage) {
 					System.out.printf("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), record.key().toString(), record.value().toString());
 				}
+				this.currentStats.add(record);
 			}
 		}
 		this.consumer.commitSync();
-	
+
 	}
 
 	void halt() {
 		this.running = false;
 		//this.interrupt();
 	}
-	
+
 	void setDumpMessage(boolean dm) {
 		this.dumpMessage = dm;
 	}
+
+	public Stats getCurrentStats() {
+		return currentStats;
+	}
+
+	public Stack<Stats> getHistory() {
+		return history;
+	}
+	
+	
+	
 }

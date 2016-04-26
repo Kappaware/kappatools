@@ -36,16 +36,19 @@ public class TestConfiguration {
 		sourceProperties1 = new Properties();
 		sourceProperties1.put("key.deserializer", StringDeserializer.class);
 		sourceProperties1.put("value.deserializer", StringDeserializer.class);
-		sourceProperties1.put("auto.offset.reset", "none");
+		sourceProperties1.put("auto.offset.reset", "latest");
 		sourceProperties1.put("bootstrap.servers", "xx:9092");
 		sourceProperties1.put("enable.auto.commit", true);
 		sourceProperties1.put("group.id", "grp1");
+		sourceProperties1.put("client.id", "cli1");
+		sourceProperties1.put("session.timeout.ms", "10000");
+		sourceProperties1.put("heartbeat.interval.ms", "2500");
 	}
 
 
 	@Test
 	public void test1() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1" };
 
 		Configuration config = new ConfigurationImpl(new Parameters(argv));
 		assertEquals("xx:9092", config.getBrokers());
@@ -55,10 +58,9 @@ public class TestConfiguration {
 	}
 
 	
-	
 	@Test
 	public void testMandatorySourceBroker() throws ConfigurationException {
-		String[] argv = { "--topic", "t1", "--consumerGroup", "grp1" };
+		String[] argv = { "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -70,7 +72,7 @@ public class TestConfiguration {
 	// ------------------------------------------ Source properties
 	@Test
 	public void testInvalidSourceProperties1() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "aa=xx" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "aa=xx", "--clientId", "cli1" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -82,7 +84,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testInvalidSourceProperties2() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "aa" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "aa" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -94,7 +96,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testInvalidSourceProperties3() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1",  "--consumerGroup", "grp1", "--properties", "aa=" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1",  "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "aa=" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -106,7 +108,7 @@ public class TestConfiguration {
 	
 	@Test
 	public void testInvalidSourceProperties4() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "=xx" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "=xx" };
 		try {
 			new ConfigurationImpl(new Parameters(argv));
 		} catch (ConfigurationException e) {
@@ -119,7 +121,7 @@ public class TestConfiguration {
 	
 	@Test
 	public void testEmptySourceProperties5() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "" };
 		
 		Configuration config = new ConfigurationImpl(new Parameters(argv));
 		assertEquals("xx:9092", config.getBrokers());
@@ -131,7 +133,7 @@ public class TestConfiguration {
 
 	@Test
 	public void testForceInvalidSourceProperties() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "aa=xx", "--forceProperties" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "aa=xx", "--forceProperties" };
 
 		Properties props2 = (Properties) sourceProperties1.clone(); 
 		props2.put("aa", "xx");
@@ -145,12 +147,12 @@ public class TestConfiguration {
 
 	@Test
 	public void testTwoSourceProperties() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", 
-				"--properties", "session.timeout.ms=10000,client.id=toto" };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", 
+				"--properties", "session.timeout.ms=4000,heartbeat.interval.ms=1000" };
 
 		Properties props2 = (Properties) sourceProperties1.clone(); 
-		props2.put("session.timeout.ms", "10000");
-		props2.put("client.id", "toto");
+		props2.put("session.timeout.ms", "4000");
+		props2.put("heartbeat.interval.ms", "1000");
 		
 		Configuration config = new ConfigurationImpl(new Parameters(argv));
 		assertEquals("xx:9092", config.getBrokers());
@@ -161,12 +163,12 @@ public class TestConfiguration {
 
 	@Test
 	public void testTwoSourcePropertiesWithSpaces() throws ConfigurationException {
-		String[] argv = { "--brokers", "xx:9092", "--topic", "t1",  "--consumerGroup", "grp1", 
-				"--properties", " session.timeout.ms = 10000 , client.id = toto " };
+		String[] argv = { "--brokers", "xx:9092", "--topic", "t1",  "--consumerGroup", "grp1", "--clientId", "cli1", 
+				"--properties", " session.timeout.ms = 4000 , heartbeat.interval.ms = 1000 " };
 
 		Properties props2 = (Properties) sourceProperties1.clone(); 
-		props2.put("session.timeout.ms", "10000");
-		props2.put("client.id", "toto");
+		props2.put("session.timeout.ms", "4000");
+		props2.put("heartbeat.interval.ms", "1000");
 		
 		Configuration config = new ConfigurationImpl(new Parameters(argv));
 		assertEquals("xx:9092", config.getBrokers());

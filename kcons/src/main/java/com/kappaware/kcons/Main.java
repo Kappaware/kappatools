@@ -52,6 +52,11 @@ public class Main {
 					} catch (InterruptedException e) {
 						log.debug("Interrupted in join of engine");
 					}
+					try {
+						sleep(100);	// To let message to be drained
+					} catch (InterruptedException e) {
+						log.debug("Interrupted in sleep");
+					}
 				}
 			});
 			engine.start();

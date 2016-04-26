@@ -22,6 +22,8 @@ import java.util.Arrays;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.jr.ob.JSON;
+
 import jline.console.ConsoleReader;
 
 public class Keyboard extends Thread {
@@ -29,13 +31,15 @@ public class Keyboard extends Thread {
 
 	private boolean running = true;
 	private Engine engine;
+	private JSON json;
 
 	Keyboard(Engine engine) {
 		this.engine = engine;
+		this.json = JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT);
 	}
 
 	enum Action {
-		stats, messon, messoff, help, halt, __error__
+		stats, stats2, jstats, messon, messoff, help, halt, histo, jhisto, __error__
 	}
 
 	@Override
@@ -85,12 +89,40 @@ public class Keyboard extends Thread {
 							out.printf("Massage display is switched on\n");
 							engine.setDumpMessage(true);
 						break;
-						case stats:
+						case jstats:
+							Stats stats = engine.getCurrentStats();
+							try {
+								String s = json.asString(stats);
+								out.println(s);
+							} catch (IOException e) {
+								out.printf("Unable to display stats!\n");
+								log.error("Unable to convert stats to json", e);
+							}
+						break;
+						case jhisto:
+							try {
+								String s = json.asString(engine.getHistory());
+								out.println(s);
+							} catch (IOException e) {
+								out.printf("Unable to display history!\n");
+								log.error("Unable to convert history to json", e);
+							}
 						break;
 						case halt:
 							out.printf("Exiting!\n");
 							engine.halt();
 							this.halt();
+						break;
+						case histo:
+							for (Stats st : engine.getHistory()) {
+								out.println(st.toString());
+							}
+						break;
+						case stats:
+							out.println(engine.getCurrentStats().toString());
+						break;
+						case stats2:
+							out.println(engine.getCurrentStats().toString(2));
 						break;
 					}
 				}
