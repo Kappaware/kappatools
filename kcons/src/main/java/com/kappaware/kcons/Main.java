@@ -23,7 +23,6 @@ import com.kappaware.kcons.config.ConfigurationImpl;
 import com.kappaware.kcons.config.Parameters;
 import com.kappaware.kcons.config.ConfigurationException;
 
-
 public class Main {
 	static Logger log = LoggerFactory.getLogger(Main.class);
 
@@ -35,16 +34,18 @@ public class Main {
 		try {
 			config = new ConfigurationImpl(new Parameters(argv));
 			Engine engine = new Engine(config);
-			Keyboard keyboard = new Keyboard(engine);
+			final Keyboard keyboard = config.isKeyboard() ? new Keyboard(engine) : null;
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
 					log.debug("Shutdown hook called!");
-					keyboard.halt();
-					try {
-						keyboard.join();
-					} catch (InterruptedException e) {
-						log.debug("Interrupted in join of keyboard");
+					if (keyboard != null) {
+						keyboard.halt();
+						try {
+							keyboard.join();
+						} catch (InterruptedException e) {
+							log.debug("Interrupted in join of keyboard");
+						}
 					}
 					engine.halt();
 					try {
@@ -53,14 +54,16 @@ public class Main {
 						log.debug("Interrupted in join of engine");
 					}
 					try {
-						sleep(100);	// To let message to be drained
+						sleep(100); // To let message to be drained
 					} catch (InterruptedException e) {
 						log.debug("Interrupted in sleep");
 					}
 				}
 			});
 			engine.start();
-			keyboard.start();
+			if (keyboard != null) {
+				keyboard.start();
+			}
 		} catch (ConfigurationException e) {
 			log.error(e.getMessage());
 			System.exit(1);

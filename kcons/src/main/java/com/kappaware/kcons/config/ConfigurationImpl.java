@@ -127,4 +127,14 @@ public class ConfigurationImpl implements Configuration {
 		return this.consumerProperties;
 	}
 
+	@Override
+	public boolean isKeyboard() {
+		return parameters.isKeyboard();
+	}
+	
+	@Override
+	public long getStatsPeriod() {
+		return this.parameters.getStatsPeriod();
+	}
+
 }

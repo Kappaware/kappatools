@@ -12,5 +12,9 @@ public interface Configuration {
 
 	Properties getConsumerProperties();
 
+	boolean isKeyboard();
+
+	long getStatsPeriod();
+
 
 }

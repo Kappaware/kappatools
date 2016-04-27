@@ -23,7 +23,9 @@ public class Parameters {
 
 	private String properties;
 	private boolean forceProperties;
-
+	private boolean keyboard;
+	private int statsPeriod;
+	
 	static OptionParser parser = new OptionParser();
 	static {
 		parser.formatHelpWith(new BuiltinHelpFormatter(120,2));
@@ -37,7 +39,9 @@ public class Parameters {
 	
 	static OptionSpec<String> SOURCE_PROPERTIES_OPT = parser.accepts("properties", "Consumer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
 	static OptionSpec<?> FORCE_PROPERTIES_OPT = parser.accepts("forceProperties", "Force unsafe properties");
-	
+	static OptionSpec<?> KEYBOARD_PROPERTIES_OPT = parser.accepts("keyboard", "Allow keyboard interaction");
+	static OptionSpec<Integer> STATS_PERIOD_OPT = parser.accepts("statsPeriod", "Period between stats display (ms) (0: no stats)").withRequiredArg().describedAs("statsPeriod(ms)").ofType(Integer.class).defaultsTo(1000);
+
 
 	@SuppressWarnings("serial")
 	private static class MyOptionException extends Exception {
@@ -63,6 +67,9 @@ public class Parameters {
 			this.properties = result.valueOf(SOURCE_PROPERTIES_OPT);
 			this.forceProperties = result.has(FORCE_PROPERTIES_OPT);
 			this.clientId = result.valueOf(CLIENT_ID_OPT);
+			this.keyboard = result.has(KEYBOARD_PROPERTIES_OPT);
+			this.statsPeriod = result.valueOf(STATS_PERIOD_OPT);
+
 		} catch (OptionException | MyOptionException t) {
 			throw new ConfigurationException(usage(t.getMessage()));
 		}
@@ -108,6 +115,14 @@ public class Parameters {
 
 	public String getClientId() {
 		return clientId;
+	}
+
+	public boolean isKeyboard() {
+		return keyboard;
+	}
+	
+	public int getStatsPeriod() {
+		return statsPeriod;
 	}
 
 

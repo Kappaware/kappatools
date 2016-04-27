@@ -39,6 +39,7 @@ public class Engine extends Thread {
 	private Stats currentStats;
 	private Stack<Stats> history = new Stack<Stats>();
 	private boolean dumpMessage = false;
+	private long lastPrintStats = 0L;
 
 	public Engine(Configuration config) {
 		this.config = config;
@@ -72,11 +73,22 @@ public class Engine extends Thread {
 				}
 				this.currentStats.add(record);
 			}
+			this.printStats("", false);
 		}
 		this.consumer.commitSync();
 
 	}
 
+
+	void printStats(String prefix, boolean force) {
+		long now = System.currentTimeMillis();
+		if ((this.config.getStatsPeriod() != 0 && this.lastPrintStats + this.config.getStatsPeriod() < now) || force) {
+			this.lastPrintStats = now;
+			log.info(this.getCurrentStats().toString());
+		}
+	}
+
+	
 	void halt() {
 		this.running = false;
 		//this.interrupt();
