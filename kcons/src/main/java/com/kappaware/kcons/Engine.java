@@ -44,6 +44,7 @@ public class Engine extends Thread {
 	public Engine(Configuration config) {
 		this.config = config;
 		consumer = new KafkaConsumer<Object, Object>(config.getConsumerProperties());
+		this.dumpMessage = config.isMesson();
 	}
 
 	@Override

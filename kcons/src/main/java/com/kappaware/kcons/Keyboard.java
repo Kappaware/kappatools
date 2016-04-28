@@ -25,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.jr.ob.JSON;
 
 import jline.console.ConsoleReader;
+import jline.console.UserInterruptException;
 
 public class Keyboard extends Thread {
 	static Logger log = LoggerFactory.getLogger(Keyboard.class);
@@ -32,7 +33,8 @@ public class Keyboard extends Thread {
 	private boolean running = true;
 	private Engine engine;
 	private JSON json;
-
+	private ConsoleReader reader;
+	
 	Keyboard(Engine engine) {
 		this.engine = engine;
 		this.json = JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT);
@@ -45,13 +47,14 @@ public class Keyboard extends Thread {
 	@Override
 	public void run() {
 		log.debug("Keyboard thread running");
-		ConsoleReader reader;
+		
 		try {
 			reader = new ConsoleReader();
 		} catch (IOException e1) {
 			log.error("Error on console init. Will not handle keyboard", e1);
 			return;
 		}
+		reader.setHandleUserInterrupt(true);
 		reader.setPrompt("kcons>");
 		PrintWriter out = new PrintWriter(reader.getOutput());
 		//BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
@@ -59,6 +62,9 @@ public class Keyboard extends Thread {
 			String line;
 			try {
 				line = reader.readLine();
+			} catch (UserInterruptException e) {
+				line = null;
+				engine.halt();	// As SIGINT is trapped, we must manually halt the processsing
 			} catch (IOException e) {
 				log.error("Error in keyboard read()", e);
 				line = null;
@@ -133,5 +139,6 @@ public class Keyboard extends Thread {
 	void halt() {
 		this.running = false;
 		this.interrupt();
+		this.reader.shutdown();
 	}
 }

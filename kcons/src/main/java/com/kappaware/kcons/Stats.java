@@ -39,6 +39,7 @@ public class Stats {
 	private Map<Integer, PartitionStats> partitionById = new HashMap<Integer, PartitionStats>();
 	private Map<String, PartitionKeyStats> partitionKeysByKey = new HashMap<String, PartitionKeyStats>();
 	private List<String> errors = new Vector<String>();
+	private RateHolder rateHolder = new RateHolder();
 
 	Stats(Collection<TopicPartition> partitions) {
 		this.startTime = System.currentTimeMillis();
@@ -53,11 +54,12 @@ public class Stats {
 	}
 
 	void add(ConsumerRecord<Object, Object> record) {
+		this.rateHolder.inc();
 		PartitionStats pt = partitionById.get(record.partition());
 		if (pt == null) {
 			log.error(String.format("Getting a message on a non-assigned partition #%d", record.partition()));
 		} else {
-			pt.messageCount++;
+			pt.inc();
 			if (record.offset() != pt.lastOffset + 1 && pt.lastOffset != 0) {
 				error(String.format("Offset mistmatch on partition %d: lastOffset:%d  record.offset:%d", record.partition(), pt.lastOffset, record.offset()));
 			}
@@ -96,27 +98,80 @@ public class Stats {
 			}
 		}
 	}
+	
+	static class RateHolder {
+		private long startTime;
+		private long count;
+
+		private long lastReadTime;
+		private long lastReadCount;
+		private Double lastRate;
+
+		RateHolder() {
+			this.startTime = System.currentTimeMillis();
+			this.lastReadTime = this.startTime;
+		}
+		
+		public Double getGlobalRate() {
+			long now = System.currentTimeMillis();
+			return (new Double(count) * 1000) / (now - this.startTime);
+		}
+		
+		void tick() {
+			long now;
+			long lastCount;
+			synchronized(this) {
+				now = System.currentTimeMillis();
+				lastCount = this.count;
+			}
+			this.lastRate = (new Double(lastCount - this.lastReadCount) * 1000) / (now - this.lastReadTime);
+			this.lastReadCount = lastCount;
+			this.lastReadTime = now;
+		}
+		
+		synchronized  void inc() {
+			this.count++;
+		}
+		
+		Double getLastRate() {
+			return this.lastRate;
+		}
+		
+		public Double getRate() {
+			this.tick();
+			return this.lastRate;
+		}
+		
+		public long getCount() {
+			return this.count;
+		}
+	}
 
 	static class PartitionStats {
 		private int partition;
-		private long messageCount;
 		private long lastOffset;
+		private RateHolder rateHolder = new RateHolder();
+		
 
 		public PartitionStats(int partition) {
 			this.partition = partition;
 		}
 
 		public long getMessageCount() {
-			return messageCount;
+			return this.rateHolder.getCount();
 		}
 
 		public long getLastOffset() {
 			return lastOffset;
 		}
-
+		
+		public void inc() {
+			this.rateHolder.inc();
+		}
+		
 		@Override
 		public String toString() {
-			return String.format("Partition:%d  messageCount:%d  lastOffset:%d", this.partition, this.messageCount, this.lastOffset);
+			return String.format("Partition:%d  messageCount:%d  lastOffset:%d   Read rate: %.2f mess/sec", this.partition, this.rateHolder.getCount(), this.lastOffset, this.rateHolder.getRate());
 		}
 
 	}
@@ -178,7 +233,7 @@ public class Stats {
 
 	public String toString(int level) {
 		StringBuffer sb = new StringBuffer();
-		sb.append(String.format("Start time:%s\n", this.getStartTime()));
+		sb.append(String.format("Start time:%s    Read rate: %.2f mess/sec\n", this.getStartTime(), this.rateHolder.getRate()));
 		List<Integer> l = new Vector<Integer>(this.partitionById.keySet());
 		Collections.sort(l);
 		for (Integer p : l) {

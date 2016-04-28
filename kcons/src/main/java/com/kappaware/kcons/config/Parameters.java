@@ -25,6 +25,7 @@ public class Parameters {
 	private boolean forceProperties;
 	private boolean keyboard;
 	private int statsPeriod;
+	private boolean messon;
 	
 	static OptionParser parser = new OptionParser();
 	static {
@@ -39,7 +40,8 @@ public class Parameters {
 	
 	static OptionSpec<String> SOURCE_PROPERTIES_OPT = parser.accepts("properties", "Consumer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
 	static OptionSpec<?> FORCE_PROPERTIES_OPT = parser.accepts("forceProperties", "Force unsafe properties");
-	static OptionSpec<?> KEYBOARD_PROPERTIES_OPT = parser.accepts("keyboard", "Allow keyboard interaction");
+	static OptionSpec<?> KEYBOARD_OPT = parser.accepts("keyboard", "Allow keyboard interaction");
+	static OptionSpec<?> MESSON_OPT = parser.accepts("messon", "Display all read messages");
 	static OptionSpec<Integer> STATS_PERIOD_OPT = parser.accepts("statsPeriod", "Period between stats display (ms) (0: no stats)").withRequiredArg().describedAs("statsPeriod(ms)").ofType(Integer.class).defaultsTo(1000);
 
 
@@ -67,7 +69,8 @@ public class Parameters {
 			this.properties = result.valueOf(SOURCE_PROPERTIES_OPT);
 			this.forceProperties = result.has(FORCE_PROPERTIES_OPT);
 			this.clientId = result.valueOf(CLIENT_ID_OPT);
-			this.keyboard = result.has(KEYBOARD_PROPERTIES_OPT);
+			this.keyboard = result.has(KEYBOARD_OPT);
+			this.messon = result.has(MESSON_OPT);
 			this.statsPeriod = result.valueOf(STATS_PERIOD_OPT);
 
 		} catch (OptionException | MyOptionException t) {
@@ -123,6 +126,10 @@ public class Parameters {
 	
 	public int getStatsPeriod() {
 		return statsPeriod;
+	}
+
+	public boolean isMesson() {
+		return messon;
 	}
 
 

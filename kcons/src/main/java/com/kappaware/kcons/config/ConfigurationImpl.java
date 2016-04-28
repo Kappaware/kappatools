@@ -137,4 +137,9 @@ public class ConfigurationImpl implements Configuration {
 		return this.parameters.getStatsPeriod();
 	}
 
+	@Override
+	public boolean isMesson() {
+		return parameters.isMesson();
+	}
+
 }

@@ -16,5 +16,7 @@ public interface Configuration {
 
 	long getStatsPeriod();
 
+	boolean isMesson();
+
 
 }
