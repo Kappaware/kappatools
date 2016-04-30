@@ -13,32 +13,26 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kappaware.kgen.config;
+package com.kappaware.kgen.jetty;
 
-import java.util.List;
-import java.util.Properties;
+@SuppressWarnings("serial")
+public class HttpServerException extends Exception {
+	private int errorCode;
+	private String message;
 
-public interface Configuration {
+	public HttpServerException(int errorCode, String message) {
+		super();
+		this.errorCode = errorCode;
+		this.message = message;
+	}
 
-	String getBrokers();
+	public int getErrorCode() {
+		return errorCode;
+	}
 
-	String getTopic();
-
-	Properties getProducerProperties();
+	public String getMessage() {
+		return message;
+	}
 	
-	long getInitialCounter();
-
-	int getBurstCount();
-
-	String getGateId();
-
-	long getPeriod();
-
-	long getStatsPeriod();
-
-	String getAdminEndpoint();
-
-	List<String> getAdminAllowedNetwork();
-
 
 }

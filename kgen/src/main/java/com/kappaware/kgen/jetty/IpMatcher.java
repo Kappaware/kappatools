@@ -13,32 +13,15 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kappaware.kgen.config;
 
-import java.util.List;
-import java.util.Properties;
+package com.kappaware.kgen.jetty;
 
-public interface Configuration {
+import org.slf4j.Logger;
 
-	String getBrokers();
-
-	String getTopic();
-
-	Properties getProducerProperties();
+public interface IpMatcher {
 	
-	long getInitialCounter();
+	public boolean match(String ipAddress);
 
-	int getBurstCount();
-
-	String getGateId();
-
-	long getPeriod();
-
-	long getStatsPeriod();
-
-	String getAdminEndpoint();
-
-	List<String> getAdminAllowedNetwork();
-
+	boolean matchWithLog(String ipAddress, Logger log);
 
 }

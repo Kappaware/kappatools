@@ -104,7 +104,7 @@ public class Engine extends Thread {
 			this.countByPartition.set(partition, this.countByPartition.get(partition) + 1);
 		}
 
-		public String partitionStats() {
+		String partitionStats() {
 			StringBuffer sb = new StringBuffer();
 			String sep = "";
 			for (int p = 0; p < this.countByPartition.size(); p++) {
@@ -117,7 +117,6 @@ public class Engine extends Thread {
 		public int getCount() {
 			return this.count;
 		}
-
 	}
 
 	void printStats(String prefix, boolean force) {
@@ -132,7 +131,10 @@ public class Engine extends Thread {
 			long nbrSec2 = nbrSec - (nbrMinutes * 60) - (nbrHours * 3600);
 			log.info(String.format("%sAfter %02d:%02d:%02d, sent %d messages (%.2f mess/sec).  By partition: %s", prefix, nbrHours, nbrMinutes, nbrSec2, this.stats.getCount(), messPerSecond, this.stats.partitionStats()));
 		}
-
+	}
+	
+	public Stats getStats() {
+		return this.stats;
 	}
 
 }
