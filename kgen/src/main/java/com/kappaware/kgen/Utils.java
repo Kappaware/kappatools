@@ -15,9 +15,11 @@
  */
 package com.kappaware.kgen;
 
+import java.util.Calendar;
 import java.util.Date;
 
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,5 +56,15 @@ public class Utils {
 		}
 	}
 
+	
+	public static String printIsoDateTime(Long ts) {
+		if (ts != null) {
+			Calendar c = Calendar.getInstance();
+			c.setTimeInMillis(ts);
+			return DatatypeConverter.printDateTime(c);
+		} else {
+			return null;
+		}
+	}
 	
 }

@@ -15,7 +15,6 @@
  */
 package com.kappaware.kgen.config;
 
-import java.util.List;
 import java.util.Properties;
 
 public interface Configuration {
@@ -38,7 +37,7 @@ public interface Configuration {
 
 	String getAdminEndpoint();
 
-	List<String> getAdminAllowedNetwork();
+	String getAdminAllowedNetwork();
 
 
 }

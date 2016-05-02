@@ -10,5 +10,5 @@ kafka-console-consumer.sh --zookeeper "wn1.kfk2:2181,wn2.kfk2:2181,wn3.kfk2:2181
 
 scripts/run.sh -gateId gen1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --period 1000 --statsPeriod 1000
 
-java -jar build/libs/kgen-0.5.0.jar -gateId gen1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --period 2000 --statsPeriod 1000 --burstCount 10 --initialCounter 0
+gradle fatJar; java -jar build/libs/kgen-0.5.0.jar -gateId gen1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --period 1000 --statsPeriod 1000 --burstCount 2 --initialCounter 0 --adminEndpoint "20165"
 

@@ -23,6 +23,7 @@ import com.kappaware.kgen.config.Configuration;
 import com.kappaware.kgen.config.ConfigurationException;
 import com.kappaware.kgen.config.ConfigurationImpl;
 import com.kappaware.kgen.config.Parameters;
+import com.kappaware.kgen.jetty.AdminServer;
 
 public class Main {
 	static Logger log = LoggerFactory.getLogger(Main.class);
@@ -35,10 +36,22 @@ public class Main {
 		try {
 			config = new ConfigurationImpl(new Parameters(argv));
 			Engine engine = new Engine(config);
+			final AdminServer adminServer = config.getAdminEndpoint() != null ? new AdminServer(config.getAdminEndpoint()) : null;
+			if(adminServer != null) {
+				adminServer.setHandler(new AdminHandler(config.getAdminAllowedNetwork(), engine));
+			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
 					log.debug("Shutdown hook called!");
+					if(adminServer != null) {
+						try {
+							adminServer.halt();
+							adminServer.join();
+						} catch (Exception e1) {
+							log.error("Error in server shutdown", e1);
+						}
+					}
 					engine.halt();
 					try {
 						engine.join();
@@ -49,6 +62,9 @@ public class Main {
 			});
 
 			engine.start();
+			if(adminServer != null) {
+				adminServer.start();
+			}
 		} catch (ConfigurationException e) {
 			log.error(e.getMessage());
 			System.exit(1);

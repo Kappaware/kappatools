@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2016 BROADSoftware
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
 package com.kappaware.kgen.jetty;
 
 import java.io.IOException;
@@ -12,24 +28,20 @@ import org.eclipse.jetty.server.handler.AbstractHandler;
 
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.fasterxml.jackson.jr.ob.JSONObjectException;
-import com.kappaware.kgen.IpMatcherImpl;
 import com.kappaware.kgen.Utils;
+import com.kappaware.kgen.config.ConfigurationException;
 
 public abstract class AbstractAdminHandler extends AbstractHandler {
-	private IpMatcher ipMatcher;
+	private IpMatcherImpl ipMatcher;
 	private JSON json = JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT);
 
-	public AbstractAdminHandler(String adminAllowedNetwork) {
-		
+	public AbstractAdminHandler(String adminAllowedNetwork) throws ConfigurationException {
+
 		String[] segments = adminAllowedNetwork.split(",");
-		
-		IpMatcherImpl ipMatcher = new IpMatcherImpl();
-		for(String segmentDef : config.getAdminAllowedNetwork()) {
-			ipMatcher.addSegment(segmentDef);
+		this.ipMatcher = new IpMatcherImpl();
+		for (String segmentDef : segments) {
+			this.ipMatcher.addSegment(segmentDef);
 		}
-		
-		
-		this.ipMatcher = ipMatcher;
 	}
 
 	public abstract Object handleRequest(HttpServletRequest request, HttpServletResponse response) throws HttpServerException;
@@ -43,7 +55,10 @@ public abstract class AbstractAdminHandler extends AbstractHandler {
 			Object o = this.handleRequest(request, response);
 			if (o != null) {
 				try {
-					String jsonResponse = json.asString(o);
+					String jsonResponse;
+					synchronized (o) {
+						jsonResponse = json.asString(o);
+					}
 					response.setContentType("application/json;charset=UTF-8");
 					response.setStatus(HttpServletResponse.SC_OK);
 					Utils.setCache(response, 0);

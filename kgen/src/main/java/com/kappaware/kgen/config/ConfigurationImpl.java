@@ -186,4 +186,14 @@ public class ConfigurationImpl implements Configuration {
 		return this.parameters.getStatsPeriod();
 	}
 
+	@Override
+	public String getAdminEndpoint() {
+		return this.parameters.getAdminEndpoint();
+	}
+
+	@Override
+	public String getAdminAllowedNetwork() {
+		return this.parameters.getAdminAllowedNetwork();
+	}
+
 }

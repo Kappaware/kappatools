@@ -43,6 +43,8 @@ public class Parameters {
 	private String gateId;
 	private int period;
 	private int statsPeriod;
+	private String adminEndpoint;
+	private String adminAllowedNetwork;
 
 	static OptionParser parser = new OptionParser();
 	static {
@@ -51,7 +53,7 @@ public class Parameters {
 
 	static OptionSpec<String> BROKERS_OPT = parser.accepts("brokers", "Comma separated values of Target Kafka brokers").withRequiredArg().describedAs("br8:9092,br9:9092").ofType(String.class).required();
 	static OptionSpec<String> TOPIC_OPT = parser.accepts("topic", "Target topic").withRequiredArg().describedAs("topic").ofType(String.class).required();
-	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generatorId").withRequiredArg().describedAs("someId").ofType(String.class).required();
+	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generator Id. Must be unique").withRequiredArg().describedAs("someId").ofType(String.class).required();
 	
 	static OptionSpec<String> TARGET_PROPERTIES_OPT = parser.accepts("properties", "Producer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
 	static OptionSpec<?> FORCE_PROPERTIES_OPT = parser.accepts("forceProperties", "Force unsafe properties");
@@ -61,6 +63,8 @@ public class Parameters {
 	static OptionSpec<Integer> PERIOD_OPT = parser.accepts("period", "Period between two bursts (ms)").withRequiredArg().describedAs("period(ms)").ofType(Integer.class).defaultsTo(0);
 	static OptionSpec<Integer> STATS_PERIOD_OPT = parser.accepts("statsPeriod", "Period between stats display (ms) (0: no stats)").withRequiredArg().describedAs("statsPeriod(ms)").ofType(Integer.class).defaultsTo(1000);
 
+	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
+	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("0.0.0.0/0");;
 
 	@SuppressWarnings("serial")
 	private static class MyOptionException extends Exception {
@@ -87,8 +91,8 @@ public class Parameters {
 			this.period = result.valueOf(PERIOD_OPT);
 			this.gateId = result.valueOf(GATE_ID_OPT);
 			this.statsPeriod = result.valueOf(STATS_PERIOD_OPT);
-
-		
+			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
+			this.adminAllowedNetwork = result.valueOf(ADMIN_ALLOWED_NETWORK_OPT);
 		} catch (OptionException | MyOptionException t) {
 			throw new ConfigurationException(usage(t.getMessage()));
 		}
@@ -148,6 +152,14 @@ public class Parameters {
 
 	public int getStatsPeriod() {
 		return statsPeriod;
+	}
+
+	public String getAdminEndpoint() {
+		return this.adminEndpoint;
+	}
+
+	public String getAdminAllowedNetwork() {
+		return this.adminAllowedNetwork;
 	}
 
 

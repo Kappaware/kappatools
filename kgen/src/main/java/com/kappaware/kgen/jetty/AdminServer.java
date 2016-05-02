@@ -18,19 +18,24 @@ package com.kappaware.kgen.jetty;
 
 import java.net.InetSocketAddress;
 
+import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
+import org.eclipse.jetty.server.ServerConnector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-import com.kappaware.kgen.config.Configuration;
 import com.kappaware.kgen.config.ConfigurationException;
 
 public class AdminServer {
+	static Logger log = LoggerFactory.getLogger(AdminServer.class);
+
 	private Server server;
 
-	AdminServer(Configuration config) throws ConfigurationException {
+	public AdminServer(String adminEndpoint) throws ConfigurationException {
 		InetSocketAddress bindAddr;
 		int port;
 		try {
-			String[] endp = config.getAdminEndpoint().split(":");
+			String[] endp = adminEndpoint.split(":");
 			if (endp.length == 2) {
 				port = Integer.parseInt(endp[1]);
 				bindAddr = new InetSocketAddress(endp[0], port);
@@ -41,26 +46,27 @@ public class AdminServer {
 				throw new Exception("");
 			}
 		} catch (Throwable t) {
-			throw new ConfigurationException(String.format("Missing or invalid admin endpoint:%s", config.getAdminEndpoint()));
+			throw new ConfigurationException(String.format("Missing or invalid admin endpoint:%s", adminEndpoint));
 		}
 		this.server = new Server(bindAddr);
-
-		IpMatcherImpl ipMatcher = new IpMatcherImpl();
-		for (String segmentDef : config.getAdminAllowedNetwork()) {
-			ipMatcher.addSegment(segmentDef);
-		}
 	}
 
-	void start() throws Exception {
+	public void start() throws Exception {
+		ServerConnector sc = (ServerConnector) this.server.getConnectors()[0];
+		log.info(String.format("Starting admin server at %s:%d", sc.getHost(), sc.getPort()));
 		this.server.start();
 	}
 
-	void halt() throws Exception {
+	public void halt() throws Exception {
 		this.server.stop();
 	}
 
-	void join() throws InterruptedException {
+	public void join() throws InterruptedException {
 		this.server.join();
+	}
+
+	public void setHandler(Handler handler) {
+		this.server.setHandler(handler);
 	}
 
 }
