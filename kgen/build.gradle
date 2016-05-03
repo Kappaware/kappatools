@@ -14,32 +14,13 @@
  * limitations under the License.
  */
 
-version = '0.6.0'
-
-apply plugin: 'java'
-
-repositories {
-    jcenter()
-}
-
-apply plugin: 'eclipse'
-
-// Refer to https://issues.gradle.org/browse/GRADLE-1010
-eclipseJdt << {
-	File f = file('.settings/org.eclipse.core.resources.prefs')
-   	f.write('eclipse.preferences.version=1\n')
-   	f.append('encoding/<project>=UTF-8')
-}
-
+defaultTasks 'fatJar'
 
 dependencies {
-   compile 'org.slf4j:slf4j-log4j12:1.7.21'
+	compile 'org.slf4j:slf4j-log4j12:1.7.21'
     compile 'log4j:log4j:1.2.14'
-    compile 'com.fasterxml.jackson.jr:jackson-jr-objects:2.7.3'
-    compile 'org.apache.kafka:kafka-clients:0.9.0.1'
     compile 'net.sf.jopt-simple:jopt-simple:5.0.1'
-    compile 'org.eclipse.jetty:jetty-server:9.3.8.v20160314'
-    testCompile 'junit:junit:4.12'
+    compile project(':kcommon')
 }
 
 

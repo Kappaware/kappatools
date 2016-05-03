@@ -1,0 +1,5 @@
+
+//rootProject.name = 'kappatools'
+include 'kcommon'
+include 'kgen'
+include 'kcons'

@@ -1,11 +1,11 @@
  
 scripts/run.sh --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client1
 
-java -jar build/libs/kcons-0.5.0.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client1
+java -jar build/libs/kcons-0.6.1-SNAPSHOT.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client1
  
-gradle fatJar; java -jar build/libs/kcons-0.5.0.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client1
+gradle fatJar; java -jar build/libs/kcons-0.6.1-SNAPSHOT.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client1
 
-gradle fatJar; java -jar build/libs/kcons-0.5.0.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client2 --keyboard
+gradle fatJar; java -jar build/libs/kcons-0.6.1-SNAPSHOT.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client2 --keyboard
  
 kafka-consumer-groups.sh --bootstrap-server "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --new-consumer --list
  

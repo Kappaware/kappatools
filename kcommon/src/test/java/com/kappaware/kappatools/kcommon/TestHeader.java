@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.kappaware.kgen;
+package com.kappaware.kappatools.kcommon;
 
 import static org.junit.Assert.*;
 

@@ -24,8 +24,8 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Test;
 
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kgen.config.Configuration;
-import com.kappaware.kgen.config.ConfigurationException;
 import com.kappaware.kgen.config.ConfigurationImpl;
 import com.kappaware.kgen.config.Parameters;
 

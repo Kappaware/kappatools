@@ -28,6 +28,7 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.Stats;
 import com.kappaware.kcons.config.Configuration;
 
 public class Engine extends Thread {
@@ -72,7 +73,7 @@ public class Engine extends Thread {
 				if (this.dumpMessage) {
 					System.out.printf("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), record.key().toString(), record.value().toString());
 				}
-				this.currentStats.add(record);
+				this.currentStats.add(record.key(), record.partition(), record.offset());
 			}
 			this.printStats("", false);
 		}

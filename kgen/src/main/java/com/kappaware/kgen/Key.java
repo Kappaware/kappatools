@@ -18,6 +18,10 @@ package com.kappaware.kgen;
 
 import org.apache.kafka.common.utils.Utils;
 
+import com.kappaware.kappatools.kcommon.ExtTs;
+import com.kappaware.kappatools.kcommon.Header;
+import com.kappaware.kappatools.kcommon.HeaderBuilder;
+
 public class Key extends Header {
 
 	static final String[] firstNames = new String[] { "CHLOÉ", "LOUISE", "CAMILLE", "LÉA", "EMMA", "JADE", "MANON", "ALICE", "INÈS", "LÉNA",

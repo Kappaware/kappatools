@@ -20,9 +20,10 @@ package com.kappaware.kgen;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import com.kappaware.kgen.config.ConfigurationException;
-import com.kappaware.kgen.jetty.AbstractAdminHandler;
-import com.kappaware.kgen.jetty.HttpServerException;
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
+import com.kappaware.kappatools.kcommon.jetty.AbstractAdminHandler;
+import com.kappaware.kappatools.kcommon.jetty.HttpServerException;
+
 
 public class AdminHandler extends AbstractAdminHandler {
 	private Engine engine;

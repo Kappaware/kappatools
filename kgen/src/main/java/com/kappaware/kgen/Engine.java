@@ -25,6 +25,10 @@ import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.ExtTs;
+import com.kappaware.kappatools.kcommon.ExtTsFactory;
+import com.kappaware.kappatools.kcommon.HeaderBuilder;
+import com.kappaware.kappatools.kcommon.Stats;
 import com.kappaware.kgen.config.Configuration;
 
 public class Engine extends Thread {
