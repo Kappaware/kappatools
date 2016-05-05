@@ -28,7 +28,6 @@ import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 public class ConfigurationImpl implements Configuration {
 	static Logger log = LoggerFactory.getLogger(ConfigurationImpl.class);
@@ -110,14 +109,15 @@ public class ConfigurationImpl implements Configuration {
 
 	private Parameters parameters;
 	private Properties producerProperties;
+	private Settings settings;
 
 	public ConfigurationImpl(Parameters parameters) throws ConfigurationException {
 		this.parameters = parameters;
 
 		this.producerProperties = new Properties();
 		this.producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getBrokers());
-		this.producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-		this.producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+		//this.producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
+		//this.producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 
 		if (this.parameters.getProperties() != null && this.parameters.getProperties().trim().length() > 0) {
 			String[] sp = this.parameters.getProperties().split(",");
@@ -141,8 +141,7 @@ public class ConfigurationImpl implements Configuration {
 			}
 		}
 		
-		
-
+		this.settings = new Settings(parameters);
 	}
 
 	// ----------------------------------------------------------
@@ -169,24 +168,10 @@ public class ConfigurationImpl implements Configuration {
 		return this.parameters.getInitialCounter();
 	}
 
-	@Override
-	public int getBurstCount() {
-		return this.parameters.getBurstCount();
-	}
 
 	@Override
 	public String getGateId() {
 		return this.parameters.getGateId();
-	}
-
-	@Override
-	public long getPeriod() {
-		return this.parameters.getPeriod();
-	}
-
-	@Override
-	public long getStatsPeriod() {
-		return this.parameters.getStatsPeriod();
 	}
 
 	@Override
@@ -199,4 +184,18 @@ public class ConfigurationImpl implements Configuration {
 		return this.parameters.getAdminAllowedNetwork();
 	}
 
+	@Override
+	public String getClientId() {
+		return parameters.getClientId();
+	}
+
+	@Override
+	public Settings getSettings() {
+		return settings;
+	}
+
+
+	
+	
+	
 }

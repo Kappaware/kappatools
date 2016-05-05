@@ -26,6 +26,11 @@ dependencies {
 }
 
 
+jar {
+	exclude("log4j.xml")
+	rename("log4j-jar.xml", "log4j.xml")
+}
+
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
 	manifest {

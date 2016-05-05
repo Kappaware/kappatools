@@ -16,6 +16,8 @@
 
 package com.kappaware.kgen;
 
+import java.io.IOException;
+
 import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
@@ -25,55 +27,69 @@ import org.apache.kafka.common.utils.Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.jr.ob.JSON;
 import com.kappaware.kappatools.kcommon.ExtTs;
 import com.kappaware.kappatools.kcommon.ExtTsFactory;
 import com.kappaware.kappatools.kcommon.HeaderBuilder;
 import com.kappaware.kappatools.kcommon.Stats;
 import com.kappaware.kgen.config.Configuration;
+import com.kappaware.kgen.config.Settings;
 
 public class Engine extends Thread {
 	static Logger log = LoggerFactory.getLogger(Engine.class);
 
 	private boolean running = true;
 	private Configuration config;
-	private KafkaProducer<Key, String> producer;
+	private KafkaProducer<String, String> producer;
 	private ExtTsFactory factory;
 	private HeaderBuilder headerBuilder;
-	private long lastPrintStats = 0L;
+	private long lastSampling = 0L;
 	private Stats stats;
+	private Settings settings;
+	private JSON json;
 
 	Engine(Configuration config) {
 		this.config = config;
-		this.producer = new KafkaProducer<Key, String>(config.getProducerProperties(), new JsonSerializer<Key>(false), new StringSerializer());
+		this.producer = new KafkaProducer<String, String>(config.getProducerProperties(),  new StringSerializer(), new StringSerializer());
 		this.factory = new ExtTsFactory(config.getGateId(), config.getInitialCounter());
 		this.headerBuilder = new HeaderBuilder();
 		this.stats = new Stats(producer.partitionsFor(this.config.getTopic()));
+		this.settings = config.getSettings();
+		this.json = JSON.std.without(JSON.Feature.PRETTY_PRINT_OUTPUT);
 	}
 
+	@Override
 	public void run() {
 		while (running) {
 			int partitionCount = this.producer.partitionsFor(this.config.getTopic()).size();
 			//log.trace(String.format("Partition count:%d", partitionCount));
-
-			for (int i = 0; i < config.getBurstCount(); i++) {
+			for (int i = 0; i < this.settings.getBurstCount(); i++) {
 				ExtTs extTs = this.factory.get();
 				Key key = new Key(extTs, headerBuilder);
+				String keyString;
+				try {
+					keyString = json.asString(key);
+				} catch (IOException e) {
+					throw new RuntimeException(String.format("Unable to generate a json string from %s (class:%s) -> %s", key.toString(), key.getClass().getName(), e));
+				}
 				String value = String.format("Message #%d for %s from %s", extTs.getCounter(), key.getRecipient(), extTs.getGateId());
 				int partition = Utils.abs(Utils.murmur2(key.getRecipient().getBytes())) % partitionCount;
-				//log.trace(String.format("Pushing message to kafka to partition %d", partition));
-				producer.send(new ProducerRecord<Key, String>(this.config.getTopic(), partition, key, value), new Callback() {
+				producer.send(new ProducerRecord<String, String>(this.config.getTopic(), partition, keyString, value), new Callback() {
 					@Override
 					public void onCompletion(RecordMetadata metadata, Exception exception) {
 						stats.add(key, metadata.partition(), metadata.offset());
+						if (settings.getMesson()) {
+							log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'", metadata.partition(), metadata.offset(), keyString, value));
+						}
 					}
 				});
 			}
 			try {
-				Thread.sleep(config.getPeriod());
+				Thread.sleep(this.settings.getPeriod());
 			} catch (InterruptedException e) {
 				log.debug("Interrupted in normal sleep!");
 			}
-			this.printStats("", false);
+			this.updateStats("", false);
 		}
 		try {
 			Thread.sleep(100);
@@ -89,19 +105,18 @@ public class Engine extends Thread {
 		this.producer.flush();
 		this.producer.close();
 		log.info("KGEN END");
-		this.printStats("", true);
+		this.updateStats("", true);
 		log.info(String.format("Next counter:%d", this.factory.getNextCounter()));
 	}
 
-	void printStats(String prefix, boolean force) {
+	void updateStats(String prefix, boolean forceDisplay) {
 		long now = System.currentTimeMillis();
-		if ((this.config.getStatsPeriod() != 0 && this.lastPrintStats + this.config.getStatsPeriod() < now) || force) {
-			this.lastPrintStats = now;
+		if (this.lastSampling + this.settings.getSamplingPeriod() < now) {
+			this.lastSampling = now;
 			this.getStats().tick();
-			log.info(this.getStats().toString());
-		} else if(this.config.getStatsPeriod() == 0 && this.lastPrintStats + 1000 < now)  {
-			this.lastPrintStats = now;
-			this.getStats().tick();
+			if(this.settings.getStatson()) {
+				log.info(this.getStats().toString());
+			}
 		}
 	}
 
@@ -113,5 +128,10 @@ public class Engine extends Thread {
 	public Stats getStats() {
 		return this.stats;
 	}
+
+	public Settings getSettings() {
+		return this.settings;
+	}
+
 
 }

@@ -27,17 +27,15 @@ public interface Configuration {
 	
 	long getInitialCounter();
 
-	int getBurstCount();
-
 	String getGateId();
-
-	long getPeriod();
-
-	long getStatsPeriod();
 
 	String getAdminEndpoint();
 
 	String getAdminAllowedNetwork();
+
+	String getClientId();
+
+	Settings getSettings();
 
 
 }

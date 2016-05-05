@@ -36,17 +36,21 @@ public class Parameters {
 
 	private String brokers;
 	private String topic;
-	
-	private String targetProperties;
+	private String properties;
 	private boolean forceProperties;
-	
-	private long initialCounter;
-	private int burstCount;
-	private String gateId;
-	private int period;
-	private int statsPeriod;
+	private String clientId;
+
+	private long samplingPeriod;
+	private boolean statson;
+	private boolean messon;
+
 	private String adminEndpoint;
 	private String adminAllowedNetwork;
+
+	private String gateId;
+	private long initialCounter;
+	private int burstCount;
+	private long period;
 
 	static OptionParser parser = new OptionParser();
 	static {
@@ -55,19 +59,24 @@ public class Parameters {
 
 	static OptionSpec<String> BROKERS_OPT = parser.accepts("brokers", "Comma separated values of Target Kafka brokers").withRequiredArg().describedAs("br8:9092,br9:9092").ofType(String.class).required();
 	static OptionSpec<String> TOPIC_OPT = parser.accepts("topic", "Target topic").withRequiredArg().describedAs("topic").ofType(String.class).required();
-	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generator Id. Must be unique").withRequiredArg().describedAs("someId").ofType(String.class).required();
-	
-	static OptionSpec<String> TARGET_PROPERTIES_OPT = parser.accepts("properties", "Producer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
+	static OptionSpec<String> PROPERTIES_OPT = parser.accepts("properties", "Producer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
 	static OptionSpec<?> FORCE_PROPERTIES_OPT = parser.accepts("forceProperties", "Force unsafe properties");
+	static OptionSpec<String> CLIENT_ID_OPT = parser.accepts("clientId", "Client ID (default: gateId value").withRequiredArg().describedAs("client1").ofType(String.class);
 
-	static OptionSpec<Long> INITIAL_COUNTER_OPT = parser.accepts("initialCounter", "Initial counter value").withRequiredArg().describedAs("counter").ofType(Long.class).defaultsTo(0L);
-	static OptionSpec<Integer> BURST_COUNT_OPT = parser.accepts("burstCount", "Burst count").withRequiredArg().describedAs("count").ofType(Integer.class).defaultsTo(1);
-	static OptionSpec<Integer> PERIOD_OPT = parser.accepts("period", "Period between two bursts (ms)").withRequiredArg().describedAs("period(ms)").ofType(Integer.class).defaultsTo(0);
-	static OptionSpec<Integer> STATS_PERIOD_OPT = parser.accepts("statsPeriod", "Period between stats display (ms) (0: no stats)").withRequiredArg().describedAs("statsPeriod(ms)").ofType(Integer.class).defaultsTo(1000);
+	static OptionSpec<Long> SAMPLING_PERIOD_OPT = parser.accepts("samplingPeriod", "Throughput sampling and stats diplay period (ms)").withRequiredArg().describedAs("samplingPeriod(ms)").ofType(Long.class).defaultsTo(1000L);
+	static OptionSpec<?> STATSON_OPT = parser.accepts("statson", "Display stats on sampling period");
+	static OptionSpec<?> MESSON_OPT = parser.accepts("messon", "Display all read messages");
 
 	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
 	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("0.0.0.0/0");;
 
+	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generator Id. Must be unique").withRequiredArg().describedAs("someId").ofType(String.class).required();
+	static OptionSpec<Long> INITIAL_COUNTER_OPT = parser.accepts("initialCounter", "Initial counter value").withRequiredArg().describedAs("counter").ofType(Long.class).defaultsTo(0L);
+	static OptionSpec<Integer> BURST_COUNT_OPT = parser.accepts("burstCount", "Burst count").withRequiredArg().describedAs("count").ofType(Integer.class).defaultsTo(1);
+	static OptionSpec<Long> PERIOD_OPT = parser.accepts("period", "Period between two bursts (ms)").withRequiredArg().describedAs("period(ms)").ofType(Long.class).defaultsTo(0L);
+
+	
+	
 	@SuppressWarnings("serial")
 	private static class MyOptionException extends Exception {
 		public MyOptionException(String message) {
@@ -86,15 +95,21 @@ public class Parameters {
 			// Mandatories parameters
 			this.brokers = result.valueOf(BROKERS_OPT);
 			this.topic = result.valueOf(TOPIC_OPT);
-			this.targetProperties = result.valueOf(TARGET_PROPERTIES_OPT);
+			this.properties = result.valueOf(PROPERTIES_OPT);
 			this.forceProperties = result.has(FORCE_PROPERTIES_OPT);
+			this.clientId = result.valueOf(CLIENT_ID_OPT);
+
+			this.samplingPeriod = result.valueOf(SAMPLING_PERIOD_OPT);
+			this.statson = result.has(STATSON_OPT);
+			this.messon = result.has(MESSON_OPT);
+
+			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
+			this.adminAllowedNetwork = result.valueOf(ADMIN_ALLOWED_NETWORK_OPT);
+
+			this.gateId = result.valueOf(GATE_ID_OPT);
 			this.initialCounter = result.valueOf(INITIAL_COUNTER_OPT);
 			this.burstCount = result.valueOf(BURST_COUNT_OPT);
 			this.period = result.valueOf(PERIOD_OPT);
-			this.gateId = result.valueOf(GATE_ID_OPT);
-			this.statsPeriod = result.valueOf(STATS_PERIOD_OPT);
-			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
-			this.adminAllowedNetwork = result.valueOf(ADMIN_ALLOWED_NETWORK_OPT);
 		} catch (OptionException | MyOptionException t) {
 			throw new ConfigurationException(usage(t.getMessage()));
 		}
@@ -129,7 +144,7 @@ public class Parameters {
 
 
 	public String getProperties() {
-		return targetProperties;
+		return properties;
 	}
 
 	public boolean isForceProperties() {
@@ -148,12 +163,12 @@ public class Parameters {
 		return gateId;
 	}
 
-	public int getPeriod() {
+	public long getPeriod() {
 		return period;
 	}
 
-	public int getStatsPeriod() {
-		return statsPeriod;
+	public long getSamplingPeriod() {
+		return samplingPeriod;
 	}
 
 	public String getAdminEndpoint() {
@@ -162,6 +177,18 @@ public class Parameters {
 
 	public String getAdminAllowedNetwork() {
 		return this.adminAllowedNetwork;
+	}
+
+	public String getClientId() {
+		return (this.clientId == null) ? this.clientId : this.gateId;
+	}
+
+	public boolean isStatson() {
+		return statson;
+	}
+
+	public boolean isMesson() {
+		return messon;
 	}
 
 

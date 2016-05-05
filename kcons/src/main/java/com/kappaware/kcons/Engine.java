@@ -86,7 +86,11 @@ public class Engine extends Thread {
 		long now = System.currentTimeMillis();
 		if ((this.config.getStatsPeriod() != 0 && this.lastPrintStats + this.config.getStatsPeriod() < now) || force) {
 			this.lastPrintStats = now;
+			this.getCurrentStats().tick();
 			log.info(this.getCurrentStats().toString());
+		} else if(this.config.getStatsPeriod() == 0 && this.lastPrintStats + 1000 < now) {
+			this.lastPrintStats = now;
+			this.getCurrentStats().tick();
 		}
 	}
 

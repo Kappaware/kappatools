@@ -14,8 +14,9 @@
  * limitations under the License.
  */
 
-
 package com.kappaware.kgen;
+
+import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -23,7 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kappatools.kcommon.jetty.AbstractAdminHandler;
 import com.kappaware.kappatools.kcommon.jetty.HttpServerException;
-
+import com.kappaware.kgen.config.Settings;
 
 public class AdminHandler extends AbstractAdminHandler {
 	private Engine engine;
@@ -34,11 +35,26 @@ public class AdminHandler extends AbstractAdminHandler {
 	}
 
 	@Override
-	public Object handleRequest(HttpServletRequest request, HttpServletResponse response) throws HttpServerException {
-		if(request.getMethod().equals("GET")) {
+	public Result handleRequest(HttpServletRequest request, HttpServletResponse response) throws HttpServerException {
+		if (request.getMethod().equals("GET")) {
 			String pathInfo = request.getPathInfo();
-			if(pathInfo.equalsIgnoreCase("/stats")) {
-				return engine.getStats();
+			if (pathInfo.equalsIgnoreCase("/stats")) {
+				return new Result(HttpServletResponse.SC_OK, engine.getStats());
+			} else if (pathInfo.equalsIgnoreCase("/settings")) {
+				return new Result(HttpServletResponse.SC_OK, engine.getSettings());
+			} else {
+				throw new HttpServerException(HttpServletResponse.SC_NOT_FOUND, String.format("Invalid path info:'%s'", pathInfo));
+			}
+		} else if (request.getMethod().equals("PUT")) {
+			String pathInfo = request.getPathInfo();
+			if (pathInfo.equalsIgnoreCase("/settings")) {
+				try {
+					Settings settings = this.getJson().beanFrom(Settings.class, request.getReader());
+					engine.getSettings().apply(settings);
+					return new Result(HttpServletResponse.SC_NO_CONTENT, null);
+				} catch (IOException e) {
+					throw new HttpServerException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, String.format("Server error:'%s'", e.getMessage()));
+				}
 			} else {
 				throw new HttpServerException(HttpServletResponse.SC_NOT_FOUND, String.format("Invalid path info:'%s'", pathInfo));
 			}
@@ -46,5 +62,5 @@ public class AdminHandler extends AbstractAdminHandler {
 			throw new HttpServerException(HttpServletResponse.SC_NOT_FOUND, "Only GET method handled here!");
 		}
 	}
-
+	
 }

@@ -44,7 +44,25 @@ public abstract class AbstractAdminHandler extends AbstractHandler {
 		}
 	}
 
-	public abstract Object handleRequest(HttpServletRequest request, HttpServletResponse response) throws HttpServerException;
+	static public class Result {
+		private int HttpCode;
+		private Object data;
+
+		public Result(int httpCode, Object data) {
+			HttpCode = httpCode;
+			this.data = data;
+		}
+
+		public int getHttpCode() {
+			return HttpCode;
+		}
+
+		public Object getData() {
+			return data;
+		}
+	}
+
+	public abstract Result handleRequest(HttpServletRequest request, HttpServletResponse response) throws HttpServerException;
 
 	@Override
 	public void handle(String target, Request baseRequest, HttpServletRequest request, HttpServletResponse response) throws IOException, ServletException {
@@ -52,29 +70,36 @@ public abstract class AbstractAdminHandler extends AbstractHandler {
 			if (!this.ipMatcher.match(request.getRemoteAddr())) {
 				throw new HttpServerException(HttpServletResponse.SC_FORBIDDEN, String.format("Request from %s are not allowed", request.getRemoteAddr()));
 			}
-			Object o = this.handleRequest(request, response);
-			if (o != null) {
-				try {
-					String jsonResponse;
-					synchronized (o) {
-						jsonResponse = json.asString(o);
+			Result r = this.handleRequest(request, response);
+			if (r != null) {
+				response.setStatus(r.getHttpCode());
+				if (r.getData() != null) {
+					try {
+						String jsonResponse;
+						synchronized (r.getData()) {
+							jsonResponse = json.asString(r.getData());
+						}
+						response.setContentType("application/json;charset=UTF-8");
+						response.setStatus(HttpServletResponse.SC_OK);
+						Utils.setCache(response, 0);
+						PrintWriter w = response.getWriter();
+						w.print(jsonResponse);
+						w.flush();
+						w.close();
+					} catch (JSONObjectException e) {
+						throw new HttpServerException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to generate a JSON string:" + e.getMessage());
 					}
-					response.setContentType("application/json;charset=UTF-8");
-					response.setStatus(HttpServletResponse.SC_OK);
-					Utils.setCache(response, 0);
-					PrintWriter w = response.getWriter();
-					w.print(jsonResponse);
-					w.flush();
-					w.close();
-				} catch (JSONObjectException e) {
-					throw new HttpServerException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Unable to generate a JSON string:" + e.getMessage());
 				}
 			} else {
-				throw new HttpServerException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Null json object");
+				throw new HttpServerException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, "Null result object");
 			}
 		} catch (HttpServerException hse) {
 			response.sendError(hse.getErrorCode(), hse.getMessage());
 		}
 		baseRequest.setHandled(true);
+	}
+
+	protected JSON getJson() {
+		return this.json;
 	}
 }
