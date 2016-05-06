@@ -1,4 +1,4 @@
-package com.kappaware.k2kj;
+package com.kappaware.k2k;
 
 import java.util.Arrays;
 import java.util.Collection;
@@ -10,15 +10,18 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.kappaware.k2kj.config.Configuration;
+import com.kappaware.k2k.config.Configuration;
+import com.kappaware.kappatools.kcommon.Engine;
+import com.kappaware.kappatools.kcommon.Stats;
+import com.kappaware.kappatools.kcommon.config.Settings;
 
-public class Engine  {
-	Logger log = LoggerFactory.getLogger(Engine.class);
+public class EngineImpl implements Engine {
+	Logger log = LoggerFactory.getLogger(EngineImpl.class);
 	
 	private Configuration config;
 	KafkaConsumer<Byte[], Byte[]> consumer;
 	
-	public Engine(Configuration config) {
+	public EngineImpl(Configuration config) {
 		this.config = config;
 		consumer = new KafkaConsumer<Byte[], Byte[]>(config.getConsumerProperties());
 		
@@ -43,6 +46,20 @@ public class Engine  {
 		
 		
 		
+	}
+
+
+	@Override
+	public Stats getStats() {
+		// TODO Auto-generated method stub
+		return null;
+	}
+
+
+	@Override
+	public Settings getSettings() {
+		// TODO Auto-generated method stub
+		return null;
 	}
 
 }

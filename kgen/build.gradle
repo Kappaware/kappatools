@@ -21,6 +21,7 @@ dependencies {
     compile 'log4j:log4j:1.2.14'
     compile 'net.sf.jopt-simple:jopt-simple:5.0.1'
     compile project(':kcommon')
+    testCompile 'junit:junit:4.12'
 }
 
 

@@ -1,4 +1,4 @@
-package com.kappaware.k2kj.config;
+package com.kappaware.k2k.config;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -35,6 +35,7 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.CHECK_CRCS_CONFIG, 
 		ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, 
 		ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG,
+		ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
 		ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG
 		
 	}));
@@ -43,7 +44,6 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.GROUP_ID_CONFIG, 
 		ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, 
 		ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, 
-		ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
 		ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, 
 		ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, 
 		ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
@@ -90,18 +90,18 @@ public class ConfigurationImpl implements Configuration {
 	
 	// @formatter:on
 
-	private Parameters parameters;
+	private ParametersImpl parameters;
 	private Properties consumerProperties;
 	private Properties producerProperties;
 
-	public ConfigurationImpl(Parameters parameters) throws ConfigurationException {
+	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException {
 		this.parameters = parameters;
 		//log.debug(String.format("Source brokers:'%s'", this.getSourceBrokers()));
 
 		this.consumerProperties = new Properties();
 		this.consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getSourceBrokers());
 		this.consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, this.parameters.getConsumerGroup());
-		this.consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+		this.consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
 		this.consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "none");
 		this.consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
 		this.consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);

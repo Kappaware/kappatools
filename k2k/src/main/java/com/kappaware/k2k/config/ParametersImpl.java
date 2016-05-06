@@ -1,4 +1,4 @@
-package com.kappaware.k2kj.config;
+package com.kappaware.k2k.config;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -7,14 +7,16 @@ import java.io.PrintWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.config.Parameters;
+
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionException;
 import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
-public class Parameters {
-	static Logger log = LoggerFactory.getLogger(Parameters.class);
+public class ParametersImpl implements Parameters {
+	static Logger log = LoggerFactory.getLogger(ParametersImpl.class);
 
 	private String sourceBrokers;
 	private String targetBrokers;
@@ -55,7 +57,7 @@ public class Parameters {
 	}
 
 	
-	public Parameters(String[] argv) throws ConfigurationException {
+	public ParametersImpl(String[] argv) throws ConfigurationException {
 		try {
 			OptionSet result = parser.parse(argv);
 
@@ -128,6 +130,24 @@ public class Parameters {
 
 	public boolean isForceProperties() {
 		return forceProperties;
+	}
+
+	@Override
+	public long getSamplingPeriod() {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+
+	@Override
+	public boolean isStatson() {
+		// TODO Auto-generated method stub
+		return false;
+	}
+
+	@Override
+	public boolean isMesson() {
+		// TODO Auto-generated method stub
+		return false;
 	}
 
 

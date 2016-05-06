@@ -1,4 +1,4 @@
-package com.kappaware.k2kj;
+package com.kappaware.k2k;
 
 import static org.junit.Assert.*;
 
@@ -8,10 +8,10 @@ import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Test;
 
-import com.kappaware.k2kj.config.Configuration;
-import com.kappaware.k2kj.config.ConfigurationException;
-import com.kappaware.k2kj.config.ConfigurationImpl;
-import com.kappaware.k2kj.config.Parameters;
+import com.kappaware.k2k.config.Configuration;
+import com.kappaware.k2k.config.ConfigurationException;
+import com.kappaware.k2k.config.ConfigurationImpl;
+import com.kappaware.k2k.config.ParametersImpl;
 
 
 
@@ -26,7 +26,7 @@ public class TestConfiguration {
 		sourceProperties1.put("value.deserializer", ByteArrayDeserializer.class);
 		sourceProperties1.put("auto.offset.reset", "none");
 		sourceProperties1.put("bootstrap.servers", "xx:9092");
-		sourceProperties1.put("enable.auto.commit", false);
+		sourceProperties1.put("enable.auto.commit", true);
 		sourceProperties1.put("group.id", "grp1");
 		
 		targetProperties1 = new Properties();
@@ -41,7 +41,7 @@ public class TestConfiguration {
 	public void test1() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1" };
 
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -55,7 +55,7 @@ public class TestConfiguration {
 	public void testMandatorySourceBroker() throws ConfigurationException {
 		String[] argv = { "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertTrue(e.getMessage().contains("Missing required option(s) [sourceBrokers]"));
 			return;
@@ -67,7 +67,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties1() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--sourceProperties", "aa=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid source property 'aa'!", e.getMessage());
 			return;
@@ -79,7 +79,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties2() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--sourceProperties", "aa" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Source property must be as name=value. Found 'aa'", e.getMessage());
 			return;
@@ -91,7 +91,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties3() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--sourceProperties", "aa=" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Source property must be as name=value. Found 'aa='", e.getMessage());
 			return;
@@ -103,7 +103,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties4() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--sourceProperties", "=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid source property ''!", e.getMessage());
 			return;
@@ -116,7 +116,7 @@ public class TestConfiguration {
 	public void testEmptySourceProperties5() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--sourceProperties", "" };
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -133,7 +133,7 @@ public class TestConfiguration {
 		Properties props2 = (Properties) sourceProperties1.clone(); 
 		props2.put("aa", "xx");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -151,7 +151,7 @@ public class TestConfiguration {
 		props2.put("session.timeout.ms", "10000");
 		props2.put("client.id", "toto");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -169,7 +169,7 @@ public class TestConfiguration {
 		props2.put("session.timeout.ms", "10000");
 		props2.put("client.id", "toto");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -183,7 +183,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties1() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--targetProperties", "aa=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid target property 'aa'!", e.getMessage());
 			return;
@@ -195,7 +195,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties2() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--targetProperties", "aa" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Target property must be as name=value. Found 'aa'", e.getMessage());
 			return;
@@ -207,7 +207,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties3() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--targetProperties", "aa=" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Target property must be as name=value. Found 'aa='", e.getMessage());
 			return;
@@ -219,7 +219,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties4() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--targetProperties", "=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid target property ''!", e.getMessage());
 			return;
@@ -232,7 +232,7 @@ public class TestConfiguration {
 	public void testEmptyTargetProperties5() throws ConfigurationException {
 		String[] argv = { "--sourceBroker", "xx:9092", "--sourceTopic", "t1", "--targetBroker", "yy:9092", "--targetTopic", "t2", "--consumerGroup", "grp1", "--targetProperties", "" };
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -249,7 +249,7 @@ public class TestConfiguration {
 		Properties props2 = (Properties) targetProperties1.clone(); 
 		props2.put("aa", "xx");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -267,7 +267,7 @@ public class TestConfiguration {
 		props2.put("acks", "all");
 		props2.put("client.id", "toto");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());
@@ -285,7 +285,7 @@ public class TestConfiguration {
 		props2.put("acks", "all");
 		props2.put("client.id", "toto");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getSourceBrokers());
 		assertEquals("yy:9092", config.getTargetBrokers());
 		assertEquals("t1", config.getSourceTopic());

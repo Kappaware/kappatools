@@ -1,4 +1,4 @@
-package com.kappaware.k2kj.config;
+package com.kappaware.k2k.config;
 
 import java.util.Properties;
 

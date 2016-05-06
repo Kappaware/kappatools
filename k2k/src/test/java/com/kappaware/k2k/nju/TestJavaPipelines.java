@@ -1,4 +1,4 @@
-package com.kappaware.k2kj.nju;
+package com.kappaware.k2k.nju;
 
 import java.util.Arrays;
 import java.util.List;

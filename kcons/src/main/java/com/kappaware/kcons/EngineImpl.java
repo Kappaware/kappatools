@@ -81,7 +81,6 @@ public class EngineImpl extends Thread implements Engine {
 			this.updateStats("", false);
 		}
 		this.consumer.commitSync();
-
 	}
 	
 	void updateStats(String prefix, boolean forceDisplay) {

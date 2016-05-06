@@ -1,12 +1,12 @@
-package com.kappaware.k2kj;
+package com.kappaware.k2k;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import com.kappaware.k2kj.config.Configuration;
-import com.kappaware.k2kj.config.ConfigurationException;
-import com.kappaware.k2kj.config.ConfigurationImpl;
-import com.kappaware.k2kj.config.Parameters;
+import com.kappaware.k2k.config.Configuration;
+import com.kappaware.k2k.config.ConfigurationException;
+import com.kappaware.k2k.config.ConfigurationImpl;
+import com.kappaware.k2k.config.ParametersImpl;
 
 
 public class Main {
@@ -18,7 +18,10 @@ public class Main {
 
 		Configuration config;
 		try {
-			config = new ConfigurationImpl(new Parameters(argv));
+			config = new ConfigurationImpl(new ParametersImpl(argv));
+			
+			
+			
 		} catch(ConfigurationException e) {
 			log.error(e.getMessage());
 			System.exit(1);
