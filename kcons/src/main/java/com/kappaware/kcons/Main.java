@@ -18,9 +18,11 @@ package com.kappaware.kcons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.jetty.AdminHandler;
+import com.kappaware.kappatools.kcommon.jetty.AdminServer;
 import com.kappaware.kcons.config.Configuration;
 import com.kappaware.kcons.config.ConfigurationImpl;
-import com.kappaware.kcons.config.Parameters;
+import com.kappaware.kcons.config.ParametersImpl;
 import com.kappaware.kcons.config.ConfigurationException;
 
 public class Main {
@@ -32,19 +34,22 @@ public class Main {
 
 		Configuration config;
 		try {
-			config = new ConfigurationImpl(new Parameters(argv));
-			Engine engine = new Engine(config);
-			final Keyboard keyboard = config.isKeyboard() ? new Keyboard(engine) : null;
+			config = new ConfigurationImpl(new ParametersImpl(argv));
+			EngineImpl engine = new EngineImpl(config);
+			final AdminServer adminServer = config.getAdminEndpoint() != null ? new AdminServer(config.getAdminEndpoint()) : null;
+			if(adminServer != null) {
+				adminServer.setHandler(new AdminHandler(config.getAdminAllowedNetwork(), engine));
+			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
 				public void run() {
 					log.debug("Shutdown hook called!");
-					if (keyboard != null) {
-						keyboard.halt();
+					if(adminServer != null) {
 						try {
-							keyboard.join();
-						} catch (InterruptedException e) {
-							log.debug("Interrupted in join of keyboard");
+							adminServer.halt();
+							adminServer.join();
+						} catch (Exception e1) {
+							log.error("Error in server shutdown", e1);
 						}
 					}
 					engine.halt();
@@ -61,8 +66,8 @@ public class Main {
 				}
 			});
 			engine.start();
-			if (keyboard != null) {
-				keyboard.start();
+			if(adminServer != null) {
+				adminServer.start();
 			}
 		} catch (ConfigurationException e) {
 			log.error(e.getMessage());

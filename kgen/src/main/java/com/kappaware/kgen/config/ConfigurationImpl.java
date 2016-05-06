@@ -107,11 +107,11 @@ public class ConfigurationImpl implements Configuration {
 	
 	// @formatter:on
 
-	private Parameters parameters;
+	private ParametersImpl parameters;
 	private Properties producerProperties;
-	private Settings settings;
+	private SettingsExt settings;
 
-	public ConfigurationImpl(Parameters parameters) throws ConfigurationException {
+	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException {
 		this.parameters = parameters;
 
 		this.producerProperties = new Properties();
@@ -141,7 +141,7 @@ public class ConfigurationImpl implements Configuration {
 			}
 		}
 		
-		this.settings = new Settings(parameters);
+		this.settings = new SettingsExt(parameters);
 	}
 
 	// ----------------------------------------------------------
@@ -190,7 +190,7 @@ public class ConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public Settings getSettings() {
+	public SettingsExt getSettings() {
 		return settings;
 	}
 

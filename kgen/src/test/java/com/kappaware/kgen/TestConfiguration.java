@@ -21,13 +21,12 @@ import static org.junit.Assert.*;
 import java.util.Properties;
 
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.junit.Test;
 
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kgen.config.Configuration;
 import com.kappaware.kgen.config.ConfigurationImpl;
-import com.kappaware.kgen.config.Parameters;
+import com.kappaware.kgen.config.ParametersImpl;
 
 
 
@@ -56,7 +55,7 @@ public class TestConfiguration {
 	public void test1() throws ConfigurationException {
 		String[] argv = {  "--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1" };
 
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());
 		assertEquals("t2", config.getTopic());
 		assertEquals(targetProperties1, config.getProducerProperties());
@@ -74,7 +73,7 @@ public class TestConfiguration {
 	public void testMandatoryTargetBroker() throws ConfigurationException {
 		String[] argv = { "--topic", "t2", "--gateId", "gen1"};
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertTrue(e.getMessage().contains("Missing required option(s) [brokers]"));
 			return;
@@ -87,7 +86,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties1() throws ConfigurationException {
 		String[] argv = {"--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1", "--properties", "aa=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid target property 'aa'!", e.getMessage());
 			return;
@@ -99,7 +98,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties2() throws ConfigurationException {
 		String[] argv = {"--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1", "--properties", "aa" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Target property must be as name=value. Found 'aa'", e.getMessage());
 			return;
@@ -111,7 +110,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties3() throws ConfigurationException {
 		String[] argv = { "--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1", "--properties", "aa=" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Target property must be as name=value. Found 'aa='", e.getMessage());
 			return;
@@ -123,7 +122,7 @@ public class TestConfiguration {
 	public void testInvalidTargetProperties4() throws ConfigurationException {
 		String[] argv = { "--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1",  "--properties", "=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid target property ''!", e.getMessage());
 			return;
@@ -136,7 +135,7 @@ public class TestConfiguration {
 	public void testEmptyTargetProperties5() throws ConfigurationException {
 		String[] argv = { "--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1",  "--properties", "" };
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());
 		assertEquals("t2", config.getTopic());
 		assertEquals(targetProperties1, config.getProducerProperties());
@@ -150,7 +149,7 @@ public class TestConfiguration {
 		Properties props2 = (Properties) targetProperties1.clone(); 
 		props2.put("aa", "xx");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());
 		assertEquals("t2", config.getTopic());
 		assertEquals(props2, config.getProducerProperties());
@@ -165,7 +164,7 @@ public class TestConfiguration {
 		props2.put("acks", "all");
 		props2.put("client.id", "toto");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());
 		assertEquals("t2", config.getTopic());
 		assertEquals(props2, config.getProducerProperties());
@@ -180,7 +179,7 @@ public class TestConfiguration {
 		props2.put("acks", "all");
 		props2.put("client.id", "toto");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());
 		assertEquals("t2", config.getTopic());
 		assertEquals(props2, config.getProducerProperties());

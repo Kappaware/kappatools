@@ -2,6 +2,8 @@ package com.kappaware.kcons.config;
 
 import java.util.Properties;
 
+import com.kappaware.kappatools.kcommon.config.Settings;
+
 public interface Configuration {
 
 	String getBrokers();
@@ -11,12 +13,12 @@ public interface Configuration {
 	String getConsumerGroup();
 
 	Properties getConsumerProperties();
+	
+	Settings getSettings();
 
-	boolean isKeyboard();
+	String getClientId();
 
-	long getStatsPeriod();
+	String getAdminEndpoint();
 
-	boolean isMesson();
-
-
+	String getAdminAllowedNetwork();
 }

@@ -28,15 +28,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.fasterxml.jackson.jr.ob.JSON;
+import com.kappaware.kappatools.kcommon.Engine;
 import com.kappaware.kappatools.kcommon.ExtTs;
 import com.kappaware.kappatools.kcommon.ExtTsFactory;
 import com.kappaware.kappatools.kcommon.HeaderBuilder;
 import com.kappaware.kappatools.kcommon.Stats;
+import com.kappaware.kappatools.kcommon.config.Settings;
 import com.kappaware.kgen.config.Configuration;
-import com.kappaware.kgen.config.Settings;
+import com.kappaware.kgen.config.SettingsExt;
 
-public class Engine extends Thread {
-	static Logger log = LoggerFactory.getLogger(Engine.class);
+public class EngineImpl extends Thread implements Engine {
+	static Logger log = LoggerFactory.getLogger(EngineImpl.class);
 
 	private boolean running = true;
 	private Configuration config;
@@ -45,10 +47,10 @@ public class Engine extends Thread {
 	private HeaderBuilder headerBuilder;
 	private long lastSampling = 0L;
 	private Stats stats;
-	private Settings settings;
+	private SettingsExt settings;
 	private JSON json;
 
-	Engine(Configuration config) {
+	EngineImpl(Configuration config) {
 		this.config = config;
 		this.producer = new KafkaProducer<String, String>(config.getProducerProperties(),  new StringSerializer(), new StringSerializer());
 		this.factory = new ExtTsFactory(config.getGateId(), config.getInitialCounter());
@@ -125,10 +127,12 @@ public class Engine extends Thread {
 		this.interrupt();
 	}
 
+	@Override
 	public Stats getStats() {
 		return this.stats;
 	}
 
+	@Override
 	public Settings getSettings() {
 		return this.settings;
 	}

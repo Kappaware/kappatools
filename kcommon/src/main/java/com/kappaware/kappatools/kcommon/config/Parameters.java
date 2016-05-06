@@ -13,29 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kappaware.kgen.config;
+package com.kappaware.kappatools.kcommon.config;
 
-import java.util.Properties;
+public interface Parameters {
 
-public interface Configuration {
+	long getSamplingPeriod();
 
-	String getBrokers();
+	boolean isStatson();
 
-	String getTopic();
-
-	Properties getProducerProperties();
-	
-	long getInitialCounter();
-
-	String getGateId();
-
-	String getAdminEndpoint();
-
-	String getAdminAllowedNetwork();
-
-	String getClientId();
-
-	SettingsExt getSettings();
-
+	boolean isMesson();
 
 }

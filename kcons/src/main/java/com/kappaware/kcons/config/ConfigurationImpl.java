@@ -7,6 +7,9 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.kappaware.kappatools.kcommon.config.Settings;
+
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
 
@@ -51,10 +54,11 @@ public class ConfigurationImpl implements Configuration {
 	
 	// @formatter:on
 
-	private Parameters parameters;
+	private ParametersImpl parameters;
 	private Properties consumerProperties;
+	private Settings settings;
 
-	public ConfigurationImpl(Parameters parameters) throws ConfigurationException {
+	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException {
 		this.parameters = parameters;
 		//log.debug(String.format("Source brokers:'%s'", this.getBrokers()));
 
@@ -99,7 +103,7 @@ public class ConfigurationImpl implements Configuration {
 			this.consumerProperties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "10000");
 			this.consumerProperties.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "2500");
 		}
-		
+		this.settings = new Settings(parameters);
 
 	}
 
@@ -110,12 +114,10 @@ public class ConfigurationImpl implements Configuration {
 		return parameters.getBrokers();
 	}
 
-
 	@Override
 	public String getTopic() {
 		return parameters.getTopic();
 	}
-
 
 	@Override
 	public String getConsumerGroup() {
@@ -128,18 +130,25 @@ public class ConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public boolean isKeyboard() {
-		return parameters.isKeyboard();
-	}
-	
-	@Override
-	public long getStatsPeriod() {
-		return this.parameters.getStatsPeriod();
+	public String getClientId() {
+		return parameters.getClientId();
 	}
 
 	@Override
-	public boolean isMesson() {
-		return parameters.isMesson();
+	public String getAdminEndpoint() {
+		return parameters.getAdminEndpoint();
 	}
+
+	@Override
+	public String getAdminAllowedNetwork() {
+		return parameters.getAdminAllowedNetwork();
+	}
+
+	
+	@Override
+	public Settings getSettings() {
+		return settings;
+	}
+
 
 }

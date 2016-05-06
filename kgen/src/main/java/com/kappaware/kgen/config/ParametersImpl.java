@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
+import com.kappaware.kappatools.kcommon.config.Parameters;
 
 import joptsimple.BuiltinHelpFormatter;
 import joptsimple.OptionException;
@@ -31,8 +32,8 @@ import joptsimple.OptionParser;
 import joptsimple.OptionSet;
 import joptsimple.OptionSpec;
 
-public class Parameters {
-	static Logger log = LoggerFactory.getLogger(Parameters.class);
+public class ParametersImpl implements Parameters {
+	static Logger log = LoggerFactory.getLogger(ParametersImpl.class);
 
 	private String brokers;
 	private String topic;
@@ -57,7 +58,7 @@ public class Parameters {
 		parser.formatHelpWith(new BuiltinHelpFormatter(120,2));
 	}
 
-	static OptionSpec<String> BROKERS_OPT = parser.accepts("brokers", "Comma separated values of Target Kafka brokers").withRequiredArg().describedAs("br8:9092,br9:9092").ofType(String.class).required();
+	static OptionSpec<String> BROKERS_OPT = parser.accepts("brokers", "Comma separated values of Target Kafka brokers").withRequiredArg().describedAs("br1:9092,br2:9092").ofType(String.class).required();
 	static OptionSpec<String> TOPIC_OPT = parser.accepts("topic", "Target topic").withRequiredArg().describedAs("topic").ofType(String.class).required();
 	static OptionSpec<String> PROPERTIES_OPT = parser.accepts("properties", "Producer properties").withRequiredArg().describedAs("prop1=val1,prop2=val2").ofType(String.class);
 	static OptionSpec<?> FORCE_PROPERTIES_OPT = parser.accepts("forceProperties", "Force unsafe properties");
@@ -85,7 +86,7 @@ public class Parameters {
 	}
 
 	
-	public Parameters(String[] argv) throws ConfigurationException {
+	public ParametersImpl(String[] argv) throws ConfigurationException {
 		try {
 			OptionSet result = parser.parse(argv);
 
@@ -167,6 +168,7 @@ public class Parameters {
 		return period;
 	}
 
+	@Override
 	public long getSamplingPeriod() {
 		return samplingPeriod;
 	}
@@ -183,10 +185,12 @@ public class Parameters {
 		return (this.clientId == null) ? this.clientId : this.gateId;
 	}
 
+	@Override
 	public boolean isStatson() {
 		return statson;
 	}
 
+	@Override
 	public boolean isMesson() {
 		return messon;
 	}

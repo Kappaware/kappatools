@@ -20,10 +20,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
+import com.kappaware.kappatools.kcommon.jetty.AdminHandler;
 import com.kappaware.kappatools.kcommon.jetty.AdminServer;
 import com.kappaware.kgen.config.Configuration;
 import com.kappaware.kgen.config.ConfigurationImpl;
-import com.kappaware.kgen.config.Parameters;
+import com.kappaware.kgen.config.ParametersImpl;
 
 public class Main {
 	static Logger log = LoggerFactory.getLogger(Main.class);
@@ -34,8 +35,8 @@ public class Main {
 
 		Configuration config;
 		try {
-			config = new ConfigurationImpl(new Parameters(argv));
-			Engine engine = new Engine(config);
+			config = new ConfigurationImpl(new ParametersImpl(argv));
+			EngineImpl engine = new EngineImpl(config);
 			final AdminServer adminServer = config.getAdminEndpoint() != null ? new AdminServer(config.getAdminEndpoint()) : null;
 			if(adminServer != null) {
 				adminServer.setHandler(new AdminHandler(config.getAdminAllowedNetwork(), engine));
@@ -57,6 +58,11 @@ public class Main {
 						engine.join();
 					} catch (InterruptedException e) {
 						log.debug("Interrupted in join");
+					}
+					try {
+						sleep(100); // To let message to be drained
+					} catch (InterruptedException e) {
+						log.debug("Interrupted in sleep");
 					}
 				}
 			});

@@ -1,8 +1,23 @@
-package com.kappaware.kgen.config;
+/*
+ * Copyright (C) 2016 BROADSoftware
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+package com.kappaware.kappatools.kcommon.config;
 
 
 /**
- * as this class is used to biold a json object aims to change a single parameters, we need to use object, not primitive type, to be able to have null values. 
+ * as this class is used to build a json object aims to change a single parameters, we need to use object, not primitive type, to be able to have null values. 
  * @author Serge ALEXANDRE
  *
  */
@@ -11,19 +26,15 @@ public class Settings {
 	private Long samplingPeriod;
 	private Boolean statson;
 	private Boolean messon;
-	private Integer burstCount;
-	private Long period;
 	
 	// To allow JSON parsing
-	Settings() {
+	public Settings() {
 	}
 
-	Settings(Parameters params) {
+	public Settings(Parameters params) {
 		this.samplingPeriod = params.getSamplingPeriod();
 		this.statson = params.isStatson();
 		this.messon = params.isMesson();
-		this.burstCount = params.getBurstCount();
-		this.period = params.getPeriod();
 	}
 	
 	/**
@@ -39,12 +50,6 @@ public class Settings {
 		}
 		if(s.messon != null) {
 			this.messon = s.messon;
-		}
-		if(s.burstCount != null) {
-			this.burstCount = s.burstCount;
-		}
-		if(s.period != null) {
-			this.period = s.period;
 		}
 	}
 	
@@ -72,20 +77,5 @@ public class Settings {
 		this.messon = messon;
 	}
 
-	public Integer getBurstCount() {
-		return burstCount;
-	}
-
-	public void setBurstCount(Integer burstCount) {
-		this.burstCount = burstCount;
-	}
-
-	public Long getPeriod() {
-		return period;
-	}
-
-	public void setPeriod(Long period) {
-		this.period = period;
-	}
 
 }

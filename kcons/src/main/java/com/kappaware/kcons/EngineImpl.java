@@ -28,24 +28,27 @@ import org.apache.kafka.common.TopicPartition;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.Engine;
 import com.kappaware.kappatools.kcommon.Stats;
+import com.kappaware.kappatools.kcommon.config.Settings;
 import com.kappaware.kcons.config.Configuration;
 
-public class Engine extends Thread {
-	Logger log = LoggerFactory.getLogger(Engine.class);
+public class EngineImpl extends Thread implements Engine {
+	Logger log = LoggerFactory.getLogger(EngineImpl.class);
 
 	private boolean running = true;
 	private Configuration config;
 	private KafkaConsumer<Object, Object> consumer;
 	private Stats currentStats;
 	private Stack<Stats> history = new Stack<Stats>();
-	private boolean dumpMessage = false;
-	private long lastPrintStats = 0L;
+	private long lastSampling = 0L;
+	private Settings settings;
 
-	public Engine(Configuration config) {
+	
+	public EngineImpl(Configuration config) {
 		this.config = config;
 		consumer = new KafkaConsumer<Object, Object>(config.getConsumerProperties());
-		this.dumpMessage = config.isMesson();
+		this.settings = config.getSettings();
 	}
 
 	@Override
@@ -70,38 +73,31 @@ public class Engine extends Thread {
 		while (running) {
 			ConsumerRecords<Object, Object> records = consumer.poll(100);
 			for (ConsumerRecord<Object, Object> record : records) {
-				if (this.dumpMessage) {
-					System.out.printf("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), record.key().toString(), record.value().toString());
+				if (settings.getMesson()) {
+					log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), record.key().toString(), record.value().toString()));
 				}
 				this.currentStats.add(record.key(), record.partition(), record.offset());
 			}
-			this.printStats("", false);
+			this.updateStats("", false);
 		}
 		this.consumer.commitSync();
 
 	}
-
-
-	void printStats(String prefix, boolean force) {
+	
+	void updateStats(String prefix, boolean forceDisplay) {
 		long now = System.currentTimeMillis();
-		if ((this.config.getStatsPeriod() != 0 && this.lastPrintStats + this.config.getStatsPeriod() < now) || force) {
-			this.lastPrintStats = now;
-			this.getCurrentStats().tick();
-			log.info(this.getCurrentStats().toString());
-		} else if(this.config.getStatsPeriod() == 0 && this.lastPrintStats + 1000 < now) {
-			this.lastPrintStats = now;
-			this.getCurrentStats().tick();
+		if (this.lastSampling + this.settings.getSamplingPeriod() < now) {
+			this.lastSampling = now;
+			this.getStats().tick();
+			if(this.settings.getStatson()) {
+				log.info(this.getStats().toString());
+			}
 		}
 	}
 
-	
 	void halt() {
 		this.running = false;
 		//this.interrupt();
-	}
-
-	void setDumpMessage(boolean dm) {
-		this.dumpMessage = dm;
 	}
 
 	public Stats getCurrentStats() {
@@ -111,7 +107,15 @@ public class Engine extends Thread {
 	public Stack<Stats> getHistory() {
 		return history;
 	}
-	
-	
+
+	@Override
+	public Stats getStats() {
+		return this.currentStats;
+	}
+
+	@Override
+	public Settings getSettings() {
+		return this.settings;
+	}
 	
 }

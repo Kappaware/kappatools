@@ -14,17 +14,16 @@
  * limitations under the License.
  */
 
-package com.kappaware.kgen;
+package com.kappaware.kappatools.kcommon.jetty;
 
 import java.io.IOException;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import com.kappaware.kappatools.kcommon.Engine;
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
-import com.kappaware.kappatools.kcommon.jetty.AbstractAdminHandler;
-import com.kappaware.kappatools.kcommon.jetty.HttpServerException;
-import com.kappaware.kgen.config.Settings;
+import com.kappaware.kappatools.kcommon.config.Settings;
 
 public class AdminHandler extends AbstractAdminHandler {
 	private Engine engine;
@@ -49,7 +48,7 @@ public class AdminHandler extends AbstractAdminHandler {
 			String pathInfo = request.getPathInfo();
 			if (pathInfo.equalsIgnoreCase("/settings")) {
 				try {
-					Settings settings = this.getJson().beanFrom(Settings.class, request.getReader());
+					Settings settings = this.getJson().beanFrom(engine.getSettings().getClass(), request.getReader());
 					engine.getSettings().apply(settings);
 					return new Result(HttpServletResponse.SC_NO_CONTENT, null);
 				} catch (IOException e) {

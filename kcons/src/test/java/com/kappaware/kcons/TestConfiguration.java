@@ -25,7 +25,7 @@ import org.junit.Test;
 import com.kappaware.kcons.config.Configuration;
 import com.kappaware.kcons.config.ConfigurationException;
 import com.kappaware.kcons.config.ConfigurationImpl;
-import com.kappaware.kcons.config.Parameters;
+import com.kappaware.kcons.config.ParametersImpl;
 
 
 public class TestConfiguration {
@@ -50,7 +50,7 @@ public class TestConfiguration {
 	public void test1() throws ConfigurationException {
 		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1" };
 
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getBrokers());
 		assertEquals("t1", config.getTopic());
 		assertEquals("grp1", config.getConsumerGroup());
@@ -62,7 +62,7 @@ public class TestConfiguration {
 	public void testMandatorySourceBroker() throws ConfigurationException {
 		String[] argv = { "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertTrue(e.getMessage().contains("Missing required option(s) [brokers]"));
 			return;
@@ -74,7 +74,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties1() throws ConfigurationException {
 		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--properties", "aa=xx", "--clientId", "cli1" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid source property 'aa'!", e.getMessage());
 			return;
@@ -86,7 +86,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties2() throws ConfigurationException {
 		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "aa" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Source property must be as name=value. Found 'aa'", e.getMessage());
 			return;
@@ -98,7 +98,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties3() throws ConfigurationException {
 		String[] argv = { "--brokers", "xx:9092", "--topic", "t1",  "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "aa=" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Source property must be as name=value. Found 'aa='", e.getMessage());
 			return;
@@ -110,7 +110,7 @@ public class TestConfiguration {
 	public void testInvalidSourceProperties4() throws ConfigurationException {
 		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "=xx" };
 		try {
-			new ConfigurationImpl(new Parameters(argv));
+			new ConfigurationImpl(new ParametersImpl(argv));
 		} catch (ConfigurationException e) {
 			assertEquals("Invalid source property ''!", e.getMessage());
 			return;
@@ -123,7 +123,7 @@ public class TestConfiguration {
 	public void testEmptySourceProperties5() throws ConfigurationException {
 		String[] argv = { "--brokers", "xx:9092", "--topic", "t1", "--consumerGroup", "grp1", "--clientId", "cli1", "--properties", "" };
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getBrokers());
 		assertEquals("t1", config.getTopic());
 		assertEquals("grp1", config.getConsumerGroup());
@@ -138,7 +138,7 @@ public class TestConfiguration {
 		Properties props2 = (Properties) sourceProperties1.clone(); 
 		props2.put("aa", "xx");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getBrokers());
 		assertEquals("t1", config.getTopic());
 		assertEquals("grp1", config.getConsumerGroup());
@@ -154,7 +154,7 @@ public class TestConfiguration {
 		props2.put("session.timeout.ms", "4000");
 		props2.put("heartbeat.interval.ms", "1000");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getBrokers());
 		assertEquals("t1", config.getTopic());
 		assertEquals("grp1", config.getConsumerGroup());
@@ -170,7 +170,7 @@ public class TestConfiguration {
 		props2.put("session.timeout.ms", "4000");
 		props2.put("heartbeat.interval.ms", "1000");
 		
-		Configuration config = new ConfigurationImpl(new Parameters(argv));
+		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("xx:9092", config.getBrokers());
 		assertEquals("t1", config.getTopic());
 		assertEquals("grp1", config.getConsumerGroup());
