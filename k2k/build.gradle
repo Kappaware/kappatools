@@ -33,9 +33,9 @@ jar {
 //create a single Jar with all dependencies
 task fatJar(type: Jar) {
 	manifest {
-        attributes 'Implementation-Title': 'k2kj', 
+        attributes 'Implementation-Title': 'k2k', 
         	'Implementation-Version': version,
-        	'Main-Class': 'com.kappaware.k2kj.Main'
+        	'Main-Class': 'com.kappaware.k2k.Main'
     }
     baseName = project.name
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
@@ -47,7 +47,7 @@ task fatJar(type: Jar) {
 task run_main(type: JavaExec) {
 	dependsOn classes
 	description = "Main Command launcher"
-	main = "com.kappaware.k2kj.Main"
+	main = "com.kappaware.k2k.Main"
 	classpath sourceSets.main.runtimeClasspath
 	if ( project.hasProperty("runArgs") ) {
 		args Eval.me(runArgs)	

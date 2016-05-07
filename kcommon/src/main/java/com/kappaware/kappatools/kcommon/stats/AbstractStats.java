@@ -13,27 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kappaware.kgen.config;
+package com.kappaware.kappatools.kcommon.stats;
 
-import java.util.Properties;
 
-public interface Configuration {
+public abstract class AbstractStats {
 
-	String getBrokers();
-
-	String getTopic();
-
-	Properties getProducerProperties();
+	public abstract void tick();
 	
-	long getInitialCounter();
-
-	String getGateId();
-
-	String getAdminEndpoint();
-
-	String getAdminAllowedNetwork();
-
-	SettingsExt getSettings();
-
+	public AbstractStats() {
+	}
 
 }

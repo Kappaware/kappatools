@@ -16,10 +16,11 @@
 package com.kappaware.kappatools.kcommon;
 
 import com.kappaware.kappatools.kcommon.config.Settings;
+import com.kappaware.kappatools.kcommon.stats.AbstractStats;
 
 public interface Engine {
 
-	Stats getStats();
+	AbstractStats getStats();
 
 	Settings getSettings();
 

@@ -32,8 +32,8 @@ import com.kappaware.kappatools.kcommon.Engine;
 import com.kappaware.kappatools.kcommon.ExtTs;
 import com.kappaware.kappatools.kcommon.ExtTsFactory;
 import com.kappaware.kappatools.kcommon.HeaderBuilder;
-import com.kappaware.kappatools.kcommon.Stats;
 import com.kappaware.kappatools.kcommon.config.Settings;
+import com.kappaware.kappatools.kcommon.stats.AbstractStats;
 import com.kappaware.kgen.config.Configuration;
 import com.kappaware.kgen.config.SettingsExt;
 
@@ -60,6 +60,14 @@ public class EngineImpl extends Thread implements Engine {
 		this.json = JSON.std.without(JSON.Feature.PRETTY_PRINT_OUTPUT);
 	}
 
+	abstract class MyCallback implements Callback {
+		ProducerRecord<String, String> record;
+		MyCallback(ProducerRecord<String, String> record) {
+			this.record = record;
+		}
+		
+	}
+	
 	@Override
 	public void run() {
 		while (running) {
@@ -76,10 +84,11 @@ public class EngineImpl extends Thread implements Engine {
 				}
 				String value = String.format("Message #%d for %s from %s", extTs.getCounter(), key.getRecipient(), extTs.getGateId());
 				int partition = Utils.abs(Utils.murmur2(key.getRecipient().getBytes())) % partitionCount;
-				producer.send(new ProducerRecord<String, String>(this.config.getTopic(), partition, keyString, value), new Callback() {
+				ProducerRecord<String, String> record = new ProducerRecord<String, String>(this.config.getTopic(), partition, keyString, value);
+				producer.send(record, new MyCallback(record) {
 					@Override
 					public void onCompletion(RecordMetadata metadata, Exception exception) {
-						stats.add(key, metadata.partition(), metadata.offset());
+						stats.addToProducerStats(this.record.key().getBytes(), metadata.partition(), metadata.offset());
 						if (settings.getMesson()) {
 							log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'", metadata.partition(), metadata.offset(), keyString, value));
 						}
@@ -106,7 +115,6 @@ public class EngineImpl extends Thread implements Engine {
 		}
 		this.producer.flush();
 		this.producer.close();
-		log.info("KGEN END");
 		this.updateStats("", true);
 		log.info(String.format("Next counter:%d", this.factory.getNextCounter()));
 	}
@@ -115,9 +123,9 @@ public class EngineImpl extends Thread implements Engine {
 		long now = System.currentTimeMillis();
 		if (this.lastSampling + this.settings.getSamplingPeriod() < now) {
 			this.lastSampling = now;
-			this.getStats().tick();
+			this.stats.tick();
 			if(this.settings.getStatson()) {
-				log.info(this.getStats().toString());
+				log.info(this.stats.getProducerStats().toString());
 			}
 		}
 	}
@@ -128,7 +136,7 @@ public class EngineImpl extends Thread implements Engine {
 	}
 
 	@Override
-	public Stats getStats() {
+	public AbstractStats getStats() {
 		return this.stats;
 	}
 

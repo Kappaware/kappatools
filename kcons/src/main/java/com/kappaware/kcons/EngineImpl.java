@@ -17,7 +17,6 @@ package com.kappaware.kcons;
 
 import java.util.Arrays;
 import java.util.Collection;
-import java.util.Stack;
 import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -25,12 +24,13 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.TopicPartition;
+import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.kappaware.kappatools.kcommon.Engine;
-import com.kappaware.kappatools.kcommon.Stats;
 import com.kappaware.kappatools.kcommon.config.Settings;
+import com.kappaware.kappatools.kcommon.stats.AbstractStats;
 import com.kappaware.kcons.config.Configuration;
 
 public class EngineImpl extends Thread implements Engine {
@@ -38,16 +38,15 @@ public class EngineImpl extends Thread implements Engine {
 
 	private boolean running = true;
 	private Configuration config;
-	private KafkaConsumer<Object, Object> consumer;
-	private Stats currentStats;
-	private Stack<Stats> history = new Stack<Stats>();
+	private KafkaConsumer<byte[], byte[]> consumer;
+	private Stats stats = new Stats();
 	private long lastSampling = 0L;
 	private Settings settings;
 
 	
 	public EngineImpl(Configuration config) {
 		this.config = config;
-		consumer = new KafkaConsumer<Object, Object>(config.getConsumerProperties());
+		consumer = new KafkaConsumer<byte[], byte[]>(config.getConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
 		this.settings = config.getSettings();
 	}
 
@@ -63,53 +62,43 @@ public class EngineImpl extends Thread implements Engine {
 			@Override
 			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 				log.info(String.format("ConsumerRebalanceListener - Assigned partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
-				if (currentStats != null) {
-					history.push(currentStats);
-				}
-				currentStats = new Stats(partitions);
+				stats.newConsumerStats(partitions);
 			}
 		});
 
 		while (running) {
-			ConsumerRecords<Object, Object> records = consumer.poll(100);
-			for (ConsumerRecord<Object, Object> record : records) {
+			ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
+			for (ConsumerRecord<byte[], byte[]> record : records) {
 				if (settings.getMesson()) {
-					log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), record.key().toString(), record.value().toString()));
+					log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), new String(record.key()), new String(record.value())));
 				}
-				this.currentStats.add(record.key(), record.partition(), record.offset());
+				stats.addToConsumerStats(record.key(), record.partition(), record.offset());
 			}
 			this.updateStats("", false);
 		}
 		this.consumer.commitSync();
+		this.consumer.close();
 	}
 	
 	void updateStats(String prefix, boolean forceDisplay) {
 		long now = System.currentTimeMillis();
 		if (this.lastSampling + this.settings.getSamplingPeriod() < now) {
 			this.lastSampling = now;
-			this.getStats().tick();
+			this.stats.tick();
 			if(this.settings.getStatson()) {
-				log.info(this.getStats().toString());
+				log.info(this.stats.getConsumerStats().toString());
 			}
 		}
 	}
 
 	void halt() {
 		this.running = false;
-		//this.interrupt();
 	}
 
-	public Stats getCurrentStats() {
-		return currentStats;
-	}
-
-	public Stack<Stats> getHistory() {
-		return history;
-	}
-
+	
 	@Override
-	public Stats getStats() {
-		return this.currentStats;
+	public AbstractStats getStats() {
+		return this.stats;
 	}
 
 	@Override

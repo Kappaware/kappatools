@@ -26,45 +26,10 @@ import org.slf4j.LoggerFactory;
 
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 
 public class ConfigurationImpl implements Configuration {
 	static Logger log = LoggerFactory.getLogger(ConfigurationImpl.class);
-
-	// @formatter:off
-	static Set<String> validConsumerProperties = new HashSet<String>(Arrays.asList(new String[] { 
-		ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 
-		ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 
-		ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG, 
-		ConsumerConfig.FETCH_MIN_BYTES_CONFIG, 
-		ConsumerConfig.FETCH_MAX_WAIT_MS_CONFIG, 
-		ConsumerConfig.METADATA_MAX_AGE_CONFIG,
-		ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 
-		ConsumerConfig.SEND_BUFFER_CONFIG, 
-		ConsumerConfig.RECEIVE_BUFFER_CONFIG, 
-		ConsumerConfig.CLIENT_ID_CONFIG, 
-		ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 
-		ConsumerConfig.RETRY_BACKOFF_MS_CONFIG,
-		ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, 
-		ConsumerConfig.METRICS_NUM_SAMPLES_CONFIG, 
-		ConsumerConfig.METRIC_REPORTER_CLASSES_CONFIG,
-		ConsumerConfig.CHECK_CRCS_CONFIG, 
-		ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, 
-		ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG,
-		ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
-		ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG
-		
-	}));
-
-	static Set<String> protectedConsumerProperties = new HashSet<String>(Arrays.asList(new String[] { 
-		ConsumerConfig.GROUP_ID_CONFIG, 
-		ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, 
-		ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, 
-		ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, 
-		ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, 
-		ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
-	}));
 
 	// @formatter:off
 	@SuppressWarnings("deprecation")
@@ -77,7 +42,6 @@ public class ConfigurationImpl implements Configuration {
 		ProducerConfig.ACKS_CONFIG, 
 		ProducerConfig.TIMEOUT_CONFIG, 
 		ProducerConfig.LINGER_MS_CONFIG, 
-		ProducerConfig.CLIENT_ID_CONFIG, 
 		ProducerConfig.SEND_BUFFER_CONFIG, 
 		ProducerConfig.RECEIVE_BUFFER_CONFIG, 
 		ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 
@@ -99,7 +63,8 @@ public class ConfigurationImpl implements Configuration {
 	static Set<String> protectedProducerProperties = new HashSet<String>(Arrays.asList(new String[] { 
 		ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, 
 		ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, 
-		ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG 
+		ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, 
+		ProducerConfig.CLIENT_ID_CONFIG 
 	}));
 
 	
@@ -185,17 +150,7 @@ public class ConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public String getClientId() {
-		return parameters.getClientId();
-	}
-
-	@Override
 	public SettingsExt getSettings() {
 		return settings;
 	}
-
-
-	
-	
-	
 }

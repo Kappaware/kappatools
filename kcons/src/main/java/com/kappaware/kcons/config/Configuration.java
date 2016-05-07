@@ -16,8 +16,6 @@ public interface Configuration {
 	
 	Settings getSettings();
 
-	String getClientId();
-
 	String getAdminEndpoint();
 
 	String getAdminAllowedNetwork();

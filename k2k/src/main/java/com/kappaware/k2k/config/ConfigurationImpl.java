@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2016 BROADSoftware
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.kappaware.k2k.config;
 
 import java.util.Arrays;
@@ -7,10 +22,11 @@ import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.kappaware.kappatools.kcommon.config.Settings;
+
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.serialization.ByteArrayDeserializer;
-import org.apache.kafka.common.serialization.ByteArraySerializer;
 
 public class ConfigurationImpl implements Configuration {
 	static Logger log = LoggerFactory.getLogger(ConfigurationImpl.class);
@@ -26,7 +42,6 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 
 		ConsumerConfig.SEND_BUFFER_CONFIG, 
 		ConsumerConfig.RECEIVE_BUFFER_CONFIG, 
-		ConsumerConfig.CLIENT_ID_CONFIG, 
 		ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 
 		ConsumerConfig.RETRY_BACKOFF_MS_CONFIG,
 		ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, 
@@ -36,17 +51,17 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.CONNECTIONS_MAX_IDLE_MS_CONFIG, 
 		ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG,
 		ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
-		ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG
-		
+		ConsumerConfig.PARTITION_ASSIGNMENT_STRATEGY_CONFIG,
+		ConsumerConfig.AUTO_OFFSET_RESET_CONFIG
 	}));
 
 	static Set<String> protectedConsumerProperties = new HashSet<String>(Arrays.asList(new String[] { 
 		ConsumerConfig.GROUP_ID_CONFIG, 
 		ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, 
 		ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, 
-		ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, 
 		ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, 
-		ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
+		ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
+		ConsumerConfig.CLIENT_ID_CONFIG 
 	}));
 
 	// @formatter:off
@@ -60,7 +75,6 @@ public class ConfigurationImpl implements Configuration {
 		ProducerConfig.ACKS_CONFIG, 
 		ProducerConfig.TIMEOUT_CONFIG, 
 		ProducerConfig.LINGER_MS_CONFIG, 
-		ProducerConfig.CLIENT_ID_CONFIG, 
 		ProducerConfig.SEND_BUFFER_CONFIG, 
 		ProducerConfig.RECEIVE_BUFFER_CONFIG, 
 		ProducerConfig.MAX_REQUEST_SIZE_CONFIG, 
@@ -82,7 +96,8 @@ public class ConfigurationImpl implements Configuration {
 	static Set<String> protectedProducerProperties = new HashSet<String>(Arrays.asList(new String[] { 
 		ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, 
 		ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, 
-		ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG 
+		ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, 
+		ProducerConfig.CLIENT_ID_CONFIG
 	}));
 
 	
@@ -93,6 +108,7 @@ public class ConfigurationImpl implements Configuration {
 	private ParametersImpl parameters;
 	private Properties consumerProperties;
 	private Properties producerProperties;
+	private Settings settings;
 
 	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException {
 		this.parameters = parameters;
@@ -102,9 +118,7 @@ public class ConfigurationImpl implements Configuration {
 		this.consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getSourceBrokers());
 		this.consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, this.parameters.getConsumerGroup());
 		this.consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, true);
-		this.consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "none");
-		this.consumerProperties.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
-		this.consumerProperties.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class);
+		this.consumerProperties.put(ConsumerConfig.CLIENT_ID_CONFIG, this.parameters.getClientId());
 		if (this.parameters.getSourceProperties() != null && this.parameters.getSourceProperties().trim().length() > 0) {
 			String[] sp = this.parameters.getSourceProperties().split(",");
 			for (String s : sp) {
@@ -126,11 +140,16 @@ public class ConfigurationImpl implements Configuration {
 				}
 			}
 		}
-		
+		if(!this.consumerProperties.containsKey(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG)) {
+			this.consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+		}
+		if(!this.consumerProperties.containsKey(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG) && !this.consumerProperties.containsKey(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG)) {
+			this.consumerProperties.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, "10000");
+			this.consumerProperties.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, "2500");
+		}
+
 		this.producerProperties = new Properties();
 		this.producerProperties.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getTargetBrokers());
-		this.producerProperties.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
-		this.producerProperties.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
 
 		if (this.parameters.getTargetProperties() != null && this.parameters.getTargetProperties().trim().length() > 0) {
 			String[] sp = this.parameters.getTargetProperties().split(",");
@@ -153,51 +172,57 @@ public class ConfigurationImpl implements Configuration {
 				}
 			}
 		}
-		
-		
-
+		this.settings = new Settings(parameters);
 	}
 
 	// ----------------------------------------------------------
 
 	@Override
-	public String getPartitionerField() {
-		return parameters.getPartitionerField();
-	}
-
-	@Override
 	public String getSourceBrokers() {
 		return parameters.getSourceBrokers();
 	}
-
-	@Override
-	public String getTargetBrokers() {
-		return parameters.getTargetBrokers();
-	}
-
 	@Override
 	public String getSourceTopic() {
 		return parameters.getSourceTopic();
 	}
-
-	@Override
-	public String getTargetTopic() {
-		return parameters.getTargetTopic();
-	}
-
 	@Override
 	public String getConsumerGroup() {
 		return parameters.getConsumerGroup();
 	}
-
 	@Override
 	public Properties getConsumerProperties() {
 		return this.consumerProperties;
 	}
 
+
+
+	@Override
+	public String getTargetBrokers() {
+		return parameters.getTargetBrokers();
+	}
+	@Override
+	public String getTargetTopic() {
+		return parameters.getTargetTopic();
+	}
 	@Override
 	public Properties getProducerProperties() {
 		return this.producerProperties;
 	}
 
+	@Override
+	public String getAdminEndpoint() {
+		return this.parameters.getAdminEndpoint();
+	}
+
+	@Override
+	public String getAdminAllowedNetwork() {
+		return this.parameters.getAdminAllowedNetwork();
+	}
+
+	@Override
+	public Settings getSettings() {
+		return settings;
+	}
+
+	
 }

@@ -27,7 +27,6 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.MAX_PARTITION_FETCH_BYTES_CONFIG, 
 		ConsumerConfig.SEND_BUFFER_CONFIG, 
 		ConsumerConfig.RECEIVE_BUFFER_CONFIG, 
-		ConsumerConfig.CLIENT_ID_CONFIG, 
 		ConsumerConfig.RECONNECT_BACKOFF_MS_CONFIG, 
 		ConsumerConfig.RETRY_BACKOFF_MS_CONFIG,
 		ConsumerConfig.METRICS_SAMPLE_WINDOW_MS_CONFIG, 
@@ -47,7 +46,8 @@ public class ConfigurationImpl implements Configuration {
 	static Set<String> protectedConsumerProperties = new HashSet<String>(Arrays.asList(new String[] { 
 		ConsumerConfig.GROUP_ID_CONFIG, 
 		ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, 
-		ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG
+		ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
+		ConsumerConfig.CLIENT_ID_CONFIG 
 	}));
 
 	
@@ -127,11 +127,6 @@ public class ConfigurationImpl implements Configuration {
 	@Override
 	public Properties getConsumerProperties() {
 		return this.consumerProperties;
-	}
-
-	@Override
-	public String getClientId() {
-		return parameters.getClientId();
 	}
 
 	@Override

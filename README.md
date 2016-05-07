@@ -1,5 +1,21 @@
 # kappatools
 
+Kappatooks is a small set of java tools to exercices Kafka new Consumer and producer API.
+
+Intended usage are: 
+
+- A set of learning tools to experiment about new Kafka api behavior
+
+- A test system, to exercise Kafka infrastructure at scale
+
+- A code base for new, more sophisticated domain specific application.
+
+Kappatools is made of three tools:
+
+- kgen, which is a event generator, for test ingestion.
+- kcons, which is a message consumer, as kafka original kafka-console-consumer.sh.
+- k2k, which is a kafka to kafka event copier.
+
 
 ## License
 
@@ -18,6 +34,10 @@
 	limitations under the License.
 	
 ## Usage
+
+All tools are provided as 'fatJar', which are jar embedding all dependencies. Of course, this is not the most effective if term of file size, but avoid a lot of administrative burden (No more classpath problem, not jar version mismatch...)
+
+
 
 ## Parameters
 
@@ -40,4 +60,6 @@ burstCount (*)
 gateId
 period (*)
 initialCounter
+
+
 

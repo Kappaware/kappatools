@@ -2,14 +2,14 @@
 
 kafka-topics.sh --create --zookeeper "wn1.kfk2:2181,wn2.kfk2:2181,wn3.kfk2:2181" --topic test1 --replication-factor 3 --partitions 4
 
-
 kafka-topics.sh --describe --zookeeper "wn1.kfk2:2181,wn2.kfk2:2181,wn3.kfk2:2181" --topic test1 
-
 
 kafka-console-consumer.sh --zookeeper "wn1.kfk2:2181,wn2.kfk2:2181,wn3.kfk2:2181" --topic test1 --from-beginning --property "print.key=true"
 
 
 gradle fatJar; java -jar build/libs/kgen-0.6.1-SNAPSHOT.jar -gateId gen1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --period 1000 --samplingPeriod 1000 --burstCount 2 --initialCounter 0 --adminEndpoint "20165" --statson
 
-
 curl -X PUT -i -d '{ "messon": true, "samplingPeriod": 5000, "burstCount": 5, "period": 2000, "statson": false }' http://dev1:20165/settings
+
+curl -X PUT -i -d '{ "messon": true }' http://dev1:20165/settings
+

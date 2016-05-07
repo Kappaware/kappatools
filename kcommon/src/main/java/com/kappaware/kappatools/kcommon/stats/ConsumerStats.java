@@ -13,27 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kappaware.kgen.config;
+package com.kappaware.kappatools.kcommon.stats;
 
-import java.util.Properties;
+import java.util.Collection;
 
-public interface Configuration {
+import org.apache.kafka.common.TopicPartition;
 
-	String getBrokers();
+public class ConsumerStats extends SideStats {
 
-	String getTopic();
-
-	Properties getProducerProperties();
-	
-	long getInitialCounter();
-
-	String getGateId();
-
-	String getAdminEndpoint();
-
-	String getAdminAllowedNetwork();
-
-	SettingsExt getSettings();
+	public ConsumerStats(Collection<TopicPartition> partitions) {
+		super();
+		for (TopicPartition tp : partitions) {
+			this.getPartitionById().put(tp.partition(), new PartitionStats(tp.partition()));
+		}
+	}
 
 
 }

@@ -31,7 +31,7 @@ public class Main {
 
 	static public void main(String[] argv) throws Exception {
 
-		log.info("KGEN START");
+		log.info("kgen start");
 
 		Configuration config;
 		try {
@@ -64,6 +64,7 @@ public class Main {
 					} catch (InterruptedException e) {
 						log.debug("Interrupted in sleep");
 					}
+					log.info("kgen end");
 				}
 			});
 

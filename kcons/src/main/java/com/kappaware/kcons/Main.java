@@ -30,7 +30,7 @@ public class Main {
 
 	static public void main(String[] argv) throws Exception {
 
-		log.info("KCONS START");
+		log.info("kcons start");
 
 		Configuration config;
 		try {
@@ -63,6 +63,7 @@ public class Main {
 					} catch (InterruptedException e) {
 						log.debug("Interrupted in sleep");
 					}
+					log.info("kcons end");
 				}
 			});
 			engine.start();
