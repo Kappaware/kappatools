@@ -65,7 +65,6 @@ public class EngineImpl extends Thread implements Engine {
 		MyCallback(ProducerRecord<String, String> record) {
 			this.record = record;
 		}
-		
 	}
 	
 	@Override
@@ -90,7 +89,7 @@ public class EngineImpl extends Thread implements Engine {
 					public void onCompletion(RecordMetadata metadata, Exception exception) {
 						stats.addToProducerStats(this.record.key().getBytes(), metadata.partition(), metadata.offset());
 						if (settings.getMesson()) {
-							log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'", metadata.partition(), metadata.offset(), keyString, value));
+							log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'", metadata.partition(), metadata.offset(), record.key(), record.value()));
 						}
 					}
 				});

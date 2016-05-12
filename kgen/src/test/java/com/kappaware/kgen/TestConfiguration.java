@@ -158,11 +158,11 @@ public class TestConfiguration {
 	@Test
 	public void testTwoTargetProperties() throws ConfigurationException {
 		String[] argv = { "--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1", 
-				"--properties", "acks=all,client.id=toto" };
+				"--properties", "acks=all,compression.type=gzip" };
 
 		Properties props2 = (Properties) targetProperties1.clone(); 
 		props2.put("acks", "all");
-		props2.put("client.id", "toto");
+		props2.put("compression.type", "gzip");
 		
 		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());
@@ -173,11 +173,11 @@ public class TestConfiguration {
 	@Test
 	public void testTwoTargetPropertiesWithSpaces() throws ConfigurationException {
 		String[] argv = {  "--brokers", "yy:9092", "--topic", "t2", "--gateId", "gen1",
-				"--properties", " acks = all , client.id = toto " };
+				"--properties", " acks = all , compression.type = gzip " };
 
 		Properties props2 = (Properties) targetProperties1.clone(); 
 		props2.put("acks", "all");
-		props2.put("client.id", "toto");
+		props2.put("compression.type", "gzip");
 		
 		Configuration config = new ConfigurationImpl(new ParametersImpl(argv));
 		assertEquals("yy:9092", config.getBrokers());

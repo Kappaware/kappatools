@@ -36,12 +36,7 @@ public abstract class AbstractAdminHandler extends AbstractHandler {
 	private JSON json = JSON.std.with(JSON.Feature.PRETTY_PRINT_OUTPUT).with(JSON.Feature.FAIL_ON_UNKNOWN_BEAN_PROPERTY).with(JSON.Feature.FAIL_ON_UNKNOWN_TYPE_WRITE).with(JSON.Feature.FAIL_ON_DUPLICATE_MAP_KEYS);
 
 	public AbstractAdminHandler(String adminAllowedNetwork) throws ConfigurationException {
-
-		String[] segments = adminAllowedNetwork.split(",");
-		this.ipMatcher = new IpMatcherImpl();
-		for (String segmentDef : segments) {
-			this.ipMatcher.addSegment(segmentDef);
-		}
+		this.ipMatcher = new IpMatcherImpl(adminAllowedNetwork);
 	}
 
 	static public class Result {

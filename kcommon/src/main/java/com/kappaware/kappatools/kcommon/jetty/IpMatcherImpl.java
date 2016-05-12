@@ -36,10 +36,18 @@ import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 public class IpMatcherImpl implements IpMatcher {
 	static Logger matcherLog = LoggerFactory.getLogger(IpMatcherImpl.class);
 
-	List<IpSegment> segments = new Vector<IpSegment>();
-	String range; // Saved only for log message
+	private List<IpSegment> segments = new Vector<IpSegment>();
+	private String range; // Saved only for log message
 	private boolean passThrough = false;
 
+	
+	public IpMatcherImpl(String allowedNetworks) throws ConfigurationException {
+		String[] segments = allowedNetworks.split(",");
+		for (String segmentDef : segments) {
+			this.addSegment(segmentDef);
+		}
+	}
+	
 	public void setRange(String range) throws ConfigurationException {
 		this.range = range;
 		if ("*".equals(range.trim())) {

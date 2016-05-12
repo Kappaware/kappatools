@@ -15,6 +15,7 @@
  */
 package com.kappaware.kappatools.kcommon;
 
+import java.net.InetSocketAddress;
 import java.util.Calendar;
 import java.util.Date;
 
@@ -23,6 +24,8 @@ import javax.xml.bind.DatatypeConverter;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 
 public class Utils {
 	static Logger log = LoggerFactory.getLogger(Utils.class);
@@ -69,4 +72,23 @@ public class Utils {
 		}
 	}
 	
+	
+	public static InetSocketAddress parseEndpoint(String endpoint) throws ConfigurationException {
+		try {
+			String[] endp = endpoint.split(":");
+			if (endp.length == 2) {
+				int port = Integer.parseInt(endp[1]);
+				return new InetSocketAddress(endp[0], port);
+			} else if (endp.length == 1) {
+				int port = Integer.parseInt(endp[0]);
+				return new InetSocketAddress("0.0.0.0", port);
+			} else {
+				throw new Exception();
+			}
+		} catch (Throwable t) {
+			throw new ConfigurationException(String.format("Missing or invalid endpoint:%s", endpoint));
+		}
+	}
+	
+
 }
