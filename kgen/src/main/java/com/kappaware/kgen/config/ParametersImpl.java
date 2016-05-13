@@ -46,7 +46,7 @@ public class ParametersImpl implements Parameters {
 	private boolean messon;
 
 	private String adminEndpoint;
-	private String adminAllowedNetwork;
+	private String adminAllowedNetworks;
 
 	private String gateId;
 	private long initialCounter;
@@ -69,7 +69,7 @@ public class ParametersImpl implements Parameters {
 	static OptionSpec<?> MESSON_OPT = parser.accepts("messon", "Display all read messages");
 
 	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
-	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");;
+	static OptionSpec<String> ADMIN_ALLOWED_NETWORKS_OPT = parser.accepts("adminAllowedNetworks", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");;
 
 	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generator Id. Must be unique").withRequiredArg().describedAs("someId").ofType(String.class).required();
 	static OptionSpec<Long> INITIAL_COUNTER_OPT = parser.accepts("initialCounter", "Initial counter value").withRequiredArg().describedAs("counter").ofType(Long.class).defaultsTo(0L);
@@ -105,7 +105,7 @@ public class ParametersImpl implements Parameters {
 			this.messon = result.has(MESSON_OPT);
 
 			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
-			this.adminAllowedNetwork = result.valueOf(ADMIN_ALLOWED_NETWORK_OPT);
+			this.adminAllowedNetworks = result.valueOf(ADMIN_ALLOWED_NETWORKS_OPT);
 
 			this.gateId = result.valueOf(GATE_ID_OPT);
 			this.initialCounter = result.valueOf(INITIAL_COUNTER_OPT);
@@ -177,8 +177,8 @@ public class ParametersImpl implements Parameters {
 		return this.adminEndpoint;
 	}
 
-	public String getAdminAllowedNetwork() {
-		return this.adminAllowedNetwork;
+	public String getAdminAllowedNetworks() {
+		return this.adminAllowedNetworks;
 	}
 
 	public String getClientId() {

@@ -121,11 +121,11 @@ public class ConfigurationImpl implements Configuration {
 			throw new ConfigurationException("keyLevel can only be 1, 2 or 3");
 		}
 		this.mainBindAddress = Utils.parseEndpoint(this.parameters.getEndpoint());
-		this.mainNetworkFilter = new IpMatcherImpl(this.parameters.getAllowedNetwork());
+		this.mainNetworkFilter = new IpMatcherImpl(this.parameters.getAllowedNetworks());
 		if(this.parameters.getAdminEndpoint() != null) {
 			this.adminBindAddress = Utils.parseEndpoint(this.parameters.getAdminEndpoint());
 		}
-		this.adminNetworkFilter = new IpMatcherImpl(this.parameters.getAdminAllowedNetwork());	// Always defined, as there is a default value
+		this.adminNetworkFilter = new IpMatcherImpl(this.parameters.getAdminAllowedNetworks());	// Always defined, as there is a default value
 	}
 
 	// ----------------------------------------------------------

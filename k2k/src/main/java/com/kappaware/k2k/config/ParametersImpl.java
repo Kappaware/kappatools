@@ -51,7 +51,7 @@ public class ParametersImpl implements Parameters {
 	private boolean statson;
 
 	private String adminEndpoint;
-	private String adminAllowedNetwork;
+	private String adminAllowedNetworks;
 
 	static OptionParser parser = new OptionParser();
 	static {
@@ -76,7 +76,7 @@ public class ParametersImpl implements Parameters {
 	static OptionSpec<?> MESSON_OPT = parser.accepts("messon", "Display all read messages");
 
 	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
-	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");;
+	static OptionSpec<String> ADMIN_ALLOWED_NETWORKS_OPT = parser.accepts("adminAllowedNetworks", "Admin allowed networks").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");;
 
 	
 
@@ -115,7 +115,7 @@ public class ParametersImpl implements Parameters {
 			this.messon = result.has(MESSON_OPT);
 
 			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
-			this.adminAllowedNetwork = result.valueOf(ADMIN_ALLOWED_NETWORK_OPT);
+			this.adminAllowedNetworks = result.valueOf(ADMIN_ALLOWED_NETWORKS_OPT);
 		} catch (OptionException | MyOptionException t) {
 			throw new ConfigurationException(usage(t.getMessage()));
 		}
@@ -187,7 +187,7 @@ public class ParametersImpl implements Parameters {
 	public String getAdminEndpoint() {
 		return adminEndpoint;
 	}
-	public String getAdminAllowedNetwork() {
-		return adminAllowedNetwork;
+	public String getAdminAllowedNetworks() {
+		return adminAllowedNetworks;
 	}
 }

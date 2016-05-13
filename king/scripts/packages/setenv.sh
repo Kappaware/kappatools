@@ -38,10 +38,10 @@ JOPTS="$JOPTS -Dlog4j.configuration=file:/etc/king/log4j.xml"
 
 # Allow to restrict range of IP allowed to send message to king.
 # Default is to allow everything: 
-# OPTS="$OPTS --allowedNetwork 0.0.0.0/0"
+# OPTS="$OPTS --allowedNetworks 0.0.0.0/0"
 
 # Several subnet can be provided. For example, to allow all private (RFC1918) networks;
-# OPTS="$OPTS --allowedNetwork '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'"
+# OPTS="$OPTS --allowedNetworks '10.0.0.0/8,172.16.0.0/12,192.168.0.0/16'"
 
 # Refer to Kafka Producer config for client.id parameter. If not specified, default to --gateId value
 # OPTS="$OPTS --clientId wharf1"
@@ -63,7 +63,7 @@ JOPTS="$JOPTS -Dlog4j.configuration=file:/etc/king/log4j.xml"
 
 # Allow to restrict range of IP allowed to access this admin server.
 # Default is to allow only from localhost: 
-# OPTS="$OPTS --allowedAdminNetwork 127.0.0.1/32"
+# OPTS="$OPTS --dminAllowedNetworks 127.0.0.1/32"
 
 # Define the sampling period for throughput statistics evaluation.
 # May be modified through the REST admin interface

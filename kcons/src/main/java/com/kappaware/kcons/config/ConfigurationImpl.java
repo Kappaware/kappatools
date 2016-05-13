@@ -115,7 +115,7 @@ public class ConfigurationImpl implements Configuration {
 		if(this.parameters.getAdminEndpoint() != null) {
 			this.adminBindAddress = Utils.parseEndpoint(this.parameters.getAdminEndpoint());
 		}
-		this.adminNetworkFilter = new IpMatcherImpl(this.parameters.getAdminAllowedNetwork());	// Always defined, as there is a default value
+		this.adminNetworkFilter = new IpMatcherImpl(this.parameters.getAdminAllowedNetworks());	// Always defined, as there is a default value
 
 	}
 

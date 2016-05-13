@@ -53,7 +53,7 @@ statson (*)
 messon (*)
 
 adminEndpoint
-adminAllowedNetwork
+adminAllowedNetworks
 
 #kgen specific
 burstCount (*)

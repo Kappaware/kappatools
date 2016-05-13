@@ -75,10 +75,10 @@ public class TestConfiguration extends TestCase {
 				 "--topic", "topic1",
 				 
 				"--endpoint", "127.0.0.1:8888",
-				"--allowedNetwork", "10.0.0.0/24,192.168.0.0/24,10.0.1.0/24",
+				"--allowedNetworks", "10.0.0.0/24,192.168.0.0/24,10.0.1.0/24",
 
 				"--adminEndpoint", "127.0.0.1:8889",
-				"--adminAllowedNetwork", "10.0.0.0/24,192.168.0.0/24,10.0.1.0/24",
+				"--adminAllowedNetworks", "10.0.0.0/24,192.168.0.0/24,10.0.1.0/24",
 
 				"--clientId", "theGateOne",
 				"--keyLevel", "3",

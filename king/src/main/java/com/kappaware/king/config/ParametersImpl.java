@@ -46,10 +46,10 @@ public class ParametersImpl implements Parameters {
 	private boolean messon;
 
 	private String adminEndpoint;
-	private String adminAllowedNetwork;
+	private String adminAllowedNetworks;
 
 	private String endpoint;
-	private String allowedNetwork;
+	private String allowedNetworks;
 	private String gateId;
 	private int keyLevel;
 
@@ -77,10 +77,10 @@ public class ParametersImpl implements Parameters {
 	static OptionSpec<?> MESSON_OPT = parser.accepts("messon", "Display all read messages");
 
 	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint (default: none)").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
-	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");
+	static OptionSpec<String> ADMIN_ALLOWED_NETWORKS_OPT = parser.accepts("adminAllowedNetworks", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");
 
 	static OptionSpec<String> ENDPOINT_OPT = parser.accepts("endpoint", "Main REST endpoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class).defaultsTo("0.0.0.0:7070");
-	static OptionSpec<String> ALLOWED_NETWORK_OPT = parser.accepts("allowedNetwork", "Main allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("0.0.0.0/0");;
+	static OptionSpec<String> ALLOWED_NETWORKS_OPT = parser.accepts("allowedNetworks", "Main allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("0.0.0.0/0");;
 	static OptionSpec<String> GATE_ID_OPT = parser.accepts("gateId", "generator Id. Must be unique").withRequiredArg().describedAs("someId").ofType(String.class).required();
 	static OptionSpec<Integer> KEY_LEVEL_OPT = parser.accepts("keyLevel", "Key level").withRequiredArg().describedAs("1|2|3").ofType(Integer.class).defaultsTo(1);
 
@@ -103,10 +103,10 @@ public class ParametersImpl implements Parameters {
 			this.messon = result.has(MESSON_OPT);
 
 			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
-			this.adminAllowedNetwork = result.valueOf(ADMIN_ALLOWED_NETWORK_OPT);
+			this.adminAllowedNetworks = result.valueOf(ADMIN_ALLOWED_NETWORKS_OPT);
 
 			this.endpoint = result.valueOf(ENDPOINT_OPT);
-			this.allowedNetwork = result.valueOf(ALLOWED_NETWORK_OPT);
+			this.allowedNetworks = result.valueOf(ALLOWED_NETWORKS_OPT);
 			this.gateId = result.valueOf(GATE_ID_OPT);
 			this.keyLevel = result.valueOf(KEY_LEVEL_OPT);
 		} catch (OptionException | MyOptionException t) {
@@ -161,8 +161,8 @@ public class ParametersImpl implements Parameters {
 		return adminEndpoint;
 	}
 
-	public String getAdminAllowedNetwork() {
-		return adminAllowedNetwork;
+	public String getAdminAllowedNetworks() {
+		return adminAllowedNetworks;
 	}
 
 	public String getGateId() {
@@ -183,8 +183,8 @@ public class ParametersImpl implements Parameters {
 		return endpoint;
 	}
 
-	public String getAllowedNetwork() {
-		return allowedNetwork;
+	public String getAllowedNetworks() {
+		return allowedNetworks;
 	}
 
 	public int getKeyLevel() {
