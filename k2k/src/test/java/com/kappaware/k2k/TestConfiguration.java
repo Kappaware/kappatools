@@ -28,7 +28,6 @@ import com.kappaware.k2k.config.ParametersImpl;
 
 
 
-
 public class TestConfiguration {
 	static Properties sourceProperties1;
 	static Properties targetProperties1;

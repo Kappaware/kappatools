@@ -16,10 +16,10 @@
  
 
 dependencies {
-	compile 'org.slf4j:slf4j-api:1.7.21'
-    compile 'org.eclipse.jetty:jetty-server:9.3.8.v20160314'
-    compile 'org.apache.kafka:kafka-clients:0.9.0.1'
-    compile 'com.fasterxml.jackson.jr:jackson-jr-objects:2.7.3'
-    testCompile 'junit:junit:4.12'
+	compile "org.slf4j:slf4j-api:$sl4jApiVersion"
+    compile "org.eclipse.jetty:jetty-server:$jettyVersion"
+    compile "org.apache.kafka:kafka-clients:$kafkaClientVersion"
+    compile "com.fasterxml.jackson.jr:jackson-jr-objects:$jacksonJrVersion"
+    testCompile "junit:junit:$junitVersion"
 }
 

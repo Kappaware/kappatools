@@ -24,7 +24,6 @@ subprojects {
 	apply plugin: 'eclipse'
 	
 	group = 'com.kappaware.kappatools'
-	version = '0.6.2-SNAPSHOT'
 	
 	// Refer to https://issues.gradle.org/browse/GRADLE-1010
 	eclipseJdt << {

@@ -17,11 +17,11 @@
 defaultTasks 'fatJar'
 
 dependencies {
-	compile 'org.slf4j:slf4j-log4j12:1.7.21'
-    compile 'log4j:log4j:1.2.14'
-    compile 'net.sf.jopt-simple:jopt-simple:5.0.1'
+	compile "org.slf4j:slf4j-log4j12:$sl4jLog4jVersion"
+    compile "log4j:log4j:$log4jVersion"
+    compile "net.sf.jopt-simple:jopt-simple:$joptVersion"
     compile project(':kcommon')
-    testCompile 'junit:junit:4.12'
+    testCompile "junit:junit:$junitVersion"
 }
 
 
