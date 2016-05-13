@@ -1,8 +1,10 @@
 package com.kappaware.kcons.config;
 
+import java.net.InetSocketAddress;
 import java.util.Properties;
 
 import com.kappaware.kappatools.kcommon.config.Settings;
+import com.kappaware.kappatools.kcommon.jetty.IpMatcher;
 
 public interface Configuration {
 
@@ -16,7 +18,8 @@ public interface Configuration {
 	
 	Settings getSettings();
 
-	String getAdminEndpoint();
+	InetSocketAddress getAdminBindAddress();
 
-	String getAdminAllowedNetwork();
+	IpMatcher getAdminNetworkFilter();
+
 }

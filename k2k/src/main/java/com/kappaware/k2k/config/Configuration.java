@@ -15,9 +15,11 @@
  */
 package com.kappaware.k2k.config;
 
+import java.net.InetSocketAddress;
 import java.util.Properties;
 
 import com.kappaware.kappatools.kcommon.config.Settings;
+import com.kappaware.kappatools.kcommon.jetty.IpMatcher;
 
 public interface Configuration {
 
@@ -32,10 +34,9 @@ public interface Configuration {
 	Properties getProducerProperties();
 	
 	
-	String getAdminEndpoint();
-	String getAdminAllowedNetwork();
 	Settings getSettings();
-
+	InetSocketAddress getAdminBindAddress();
+	IpMatcher getAdminNetworkFilter();
 
 
 

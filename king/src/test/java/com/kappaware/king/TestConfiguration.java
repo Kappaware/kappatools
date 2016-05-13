@@ -15,6 +15,7 @@
  */
 package com.kappaware.king;
 
+import java.net.InetSocketAddress;
 import java.util.Properties;
 
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
@@ -53,10 +54,10 @@ public class TestConfiguration extends TestCase {
 		
 		assertEquals("/0.0.0.0", config.getMainBindAddress().getAddress().toString());
 		assertEquals(7070, config.getMainBindAddress().getPort());
-		IpMatcher ipMatcher = config.getAllowedNetworkMatcher();
+		IpMatcher ipMatcher = config.getMainNetworkFilter();
 		assertTrue(ipMatcher.match("1.1.1.1"));
 		assertTrue(ipMatcher.match("200.1.1.1"));
-		assertNull(config.getAdminEndpoint());
+		assertNull(config.getAdminBindAddress());
 		assertEquals("gate1", config.getClientId());
 		assertEquals(1, config.getKeyLevel());
 		assertEquals(1000000, config.getMaxMessageSize());
@@ -108,7 +109,7 @@ public class TestConfiguration extends TestCase {
 		assertEquals(properties2, config.getProducerProperties());
 		
 		
-		IpMatcher ipMatcher = config.getAllowedNetworkMatcher();
+		IpMatcher ipMatcher = config.getMainNetworkFilter();
 
 		assertFalse(ipMatcher.match("1.1.1.1"));
 		assertFalse(ipMatcher.match("200.1.1.1"));
@@ -118,7 +119,7 @@ public class TestConfiguration extends TestCase {
 		assertTrue(ipMatcher.match("192.168.0.12"));
 		assertFalse(ipMatcher.match("192.168.1.12"));
 		
-		assertEquals("127.0.0.1:8889", config.getAdminEndpoint());
+		assertEquals(new InetSocketAddress("127.0.0.1", 8889), config.getAdminBindAddress());
 		
 	}
 }

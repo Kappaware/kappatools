@@ -103,7 +103,7 @@ public class KingServlet extends HttpServlet {
 		requestContext.extTs = this.extTsFactory.get();
 
 		// Abort immediately if not allowed
-		if (!this.config.getAllowedNetworkMatcher().match(request.getRemoteAddr())) {
+		if (!this.config.getMainNetworkFilter().match(request.getRemoteAddr())) {
 			response.sendError(HttpServletResponse.SC_FORBIDDEN, String.format("Request from %s are not allowed", request.getRemoteAddr()));
 			return;
 		}

@@ -31,10 +31,6 @@ public interface Configuration {
 	
 	String getGateId();
 
-	String getAdminEndpoint();
-
-	String getAdminAllowedNetwork();
-
 	Settings getSettings();
 
 	String getClientId();
@@ -45,8 +41,12 @@ public interface Configuration {
 
 	int getMaxMessageSize();
 
-	IpMatcher getAllowedNetworkMatcher();
-
 	InetSocketAddress getMainBindAddress();
+
+	IpMatcher getMainNetworkFilter();
+
+	InetSocketAddress getAdminBindAddress();
+
+	IpMatcher getAdminNetworkFilter();
 
 }

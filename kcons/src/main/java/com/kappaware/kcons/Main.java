@@ -18,12 +18,12 @@ package com.kappaware.kcons;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kappatools.kcommon.jetty.AdminHandler;
 import com.kappaware.kappatools.kcommon.jetty.AdminServer;
 import com.kappaware.kcons.config.Configuration;
 import com.kappaware.kcons.config.ConfigurationImpl;
 import com.kappaware.kcons.config.ParametersImpl;
-import com.kappaware.kcons.config.ConfigurationException;
 
 public class Main {
 	static Logger log = LoggerFactory.getLogger(Main.class);
@@ -36,9 +36,9 @@ public class Main {
 		try {
 			config = new ConfigurationImpl(new ParametersImpl(argv));
 			EngineImpl engine = new EngineImpl(config);
-			final AdminServer adminServer = config.getAdminEndpoint() != null ? new AdminServer(config.getAdminEndpoint()) : null;
+			final AdminServer adminServer = config.getAdminBindAddress() != null ? new AdminServer(config.getAdminBindAddress()) : null;
 			if(adminServer != null) {
-				adminServer.setHandler(new AdminHandler(config.getAdminAllowedNetwork(), engine));
+				adminServer.setHandler(new AdminHandler(config.getAdminNetworkFilter(), engine));
 			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override

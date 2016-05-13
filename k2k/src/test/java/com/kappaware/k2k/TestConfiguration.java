@@ -22,9 +22,9 @@ import java.util.Properties;
 import org.junit.Test;
 
 import com.kappaware.k2k.config.Configuration;
-import com.kappaware.k2k.config.ConfigurationException;
 import com.kappaware.k2k.config.ConfigurationImpl;
 import com.kappaware.k2k.config.ParametersImpl;
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 
 
 

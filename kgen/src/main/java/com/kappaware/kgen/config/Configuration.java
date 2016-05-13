@@ -15,7 +15,10 @@
  */
 package com.kappaware.kgen.config;
 
+import java.net.InetSocketAddress;
 import java.util.Properties;
+
+import com.kappaware.kappatools.kcommon.jetty.IpMatcher;
 
 public interface Configuration {
 
@@ -29,11 +32,10 @@ public interface Configuration {
 
 	String getGateId();
 
-	String getAdminEndpoint();
-
-	String getAdminAllowedNetwork();
-
 	SettingsExt getSettings();
 
+	InetSocketAddress getAdminBindAddress();
+
+	IpMatcher getAdminNetworkFilter();
 
 }

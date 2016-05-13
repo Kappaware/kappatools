@@ -69,6 +69,9 @@ public class IpMatcherImpl implements IpMatcher {
 		}
 	}
 
+	/**
+	 * This function is thread safe.
+	 */
 	@Override
 	public boolean match(String ipAddress) {
 		if (this.passThrough) {

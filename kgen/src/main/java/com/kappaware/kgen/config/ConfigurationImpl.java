@@ -16,6 +16,7 @@
 
 package com.kappaware.kgen.config;
 
+import java.net.InetSocketAddress;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Properties;
@@ -24,7 +25,10 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.kappaware.kappatools.kcommon.Utils;
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
+import com.kappaware.kappatools.kcommon.jetty.IpMatcher;
+import com.kappaware.kappatools.kcommon.jetty.IpMatcherImpl;
 
 import org.apache.kafka.clients.producer.ProducerConfig;
 
@@ -75,6 +79,8 @@ public class ConfigurationImpl implements Configuration {
 	private ParametersImpl parameters;
 	private Properties producerProperties;
 	private SettingsExt settings;
+	private InetSocketAddress adminBindAddress;
+	private IpMatcher adminNetworkFilter;
 
 	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException {
 		this.parameters = parameters;
@@ -107,6 +113,11 @@ public class ConfigurationImpl implements Configuration {
 		}
 		
 		this.settings = new SettingsExt(parameters);
+		if(this.parameters.getAdminEndpoint() != null) {
+			this.adminBindAddress = Utils.parseEndpoint(this.parameters.getAdminEndpoint());
+		}
+		this.adminNetworkFilter = new IpMatcherImpl(this.parameters.getAdminAllowedNetwork());	// Always defined, as there is a default value
+
 	}
 
 	// ----------------------------------------------------------
@@ -140,17 +151,20 @@ public class ConfigurationImpl implements Configuration {
 	}
 
 	@Override
-	public String getAdminEndpoint() {
-		return this.parameters.getAdminEndpoint();
-	}
-
-	@Override
-	public String getAdminAllowedNetwork() {
-		return this.parameters.getAdminAllowedNetwork();
-	}
-
-	@Override
 	public SettingsExt getSettings() {
 		return settings;
 	}
+	
+
+	@Override
+	public InetSocketAddress getAdminBindAddress() {
+		return adminBindAddress;
+	}
+
+
+	@Override
+	public IpMatcher getAdminNetworkFilter() {
+		return adminNetworkFilter;
+	}
+
 }

@@ -28,8 +28,8 @@ import com.kappaware.kappatools.kcommon.config.Settings;
 public class AdminHandler extends AbstractAdminHandler {
 	private Engine engine;
 
-	public AdminHandler(String adminAllowedNetwork, Engine engine) throws ConfigurationException {
-		super(adminAllowedNetwork);
+	public AdminHandler(IpMatcher adminNetworkFilter, Engine engine) throws ConfigurationException {
+		super(adminNetworkFilter);
 		this.engine = engine;
 	}
 

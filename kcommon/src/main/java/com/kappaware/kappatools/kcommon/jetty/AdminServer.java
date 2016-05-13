@@ -32,23 +32,7 @@ public class AdminServer {
 
 	private Server server;
 
-	public AdminServer(String adminEndpoint) throws ConfigurationException {
-		InetSocketAddress bindAddr;
-		int port;
-		try {
-			String[] endp = adminEndpoint.split(":");
-			if (endp.length == 2) {
-				port = Integer.parseInt(endp[1]);
-				bindAddr = new InetSocketAddress(endp[0], port);
-			} else if (endp.length == 1) {
-				port = Integer.parseInt(endp[0]);
-				bindAddr = new InetSocketAddress("0.0.0.0", port);
-			} else {
-				throw new Exception("");
-			}
-		} catch (Throwable t) {
-			throw new ConfigurationException(String.format("Missing or invalid admin endpoint:%s", adminEndpoint));
-		}
+	public AdminServer(InetSocketAddress bindAddr) throws ConfigurationException {
 		this.server = new Server(bindAddr);
 	}
 

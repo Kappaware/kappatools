@@ -22,8 +22,8 @@ import java.util.Properties;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.junit.Test;
 
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kcons.config.Configuration;
-import com.kappaware.kcons.config.ConfigurationException;
 import com.kappaware.kcons.config.ConfigurationImpl;
 import com.kappaware.kcons.config.ParametersImpl;
 

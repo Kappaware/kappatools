@@ -80,8 +80,10 @@ public class ConfigurationImpl implements Configuration {
 	private ParametersImpl parameters;
 	private Properties producerProperties;
 	private Settings settings;
-	private IpMatcher allowedNetworkMatcher;
 	private InetSocketAddress mainBindAddress;
+	private IpMatcher mainNetworkFilter;
+	private InetSocketAddress adminBindAddress;
+	private IpMatcher adminNetworkFilter;
 
 
 	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException {
@@ -119,7 +121,11 @@ public class ConfigurationImpl implements Configuration {
 			throw new ConfigurationException("keyLevel can only be 1, 2 or 3");
 		}
 		this.mainBindAddress = Utils.parseEndpoint(this.parameters.getEndpoint());
-		this.allowedNetworkMatcher = new IpMatcherImpl(this.parameters.getAllowedNetwork());
+		this.mainNetworkFilter = new IpMatcherImpl(this.parameters.getAllowedNetwork());
+		if(this.parameters.getAdminEndpoint() != null) {
+			this.adminBindAddress = Utils.parseEndpoint(this.parameters.getAdminEndpoint());
+		}
+		this.adminNetworkFilter = new IpMatcherImpl(this.parameters.getAdminAllowedNetwork());	// Always defined, as there is a default value
 	}
 
 	// ----------------------------------------------------------
@@ -151,15 +157,21 @@ public class ConfigurationImpl implements Configuration {
 		return this.mainBindAddress;
 	}
 
-
 	@Override
-	public String getAdminEndpoint() {
-		return this.parameters.getAdminEndpoint();
+	public IpMatcher getMainNetworkFilter() {
+		return this.mainNetworkFilter;
 	}
 
+	
 	@Override
-	public String getAdminAllowedNetwork() {
-		return this.parameters.getAdminAllowedNetwork();
+	public InetSocketAddress getAdminBindAddress() {
+		return adminBindAddress;
+	}
+
+
+	@Override
+	public IpMatcher getAdminNetworkFilter() {
+		return adminNetworkFilter;
 	}
 
 	@Override
@@ -172,11 +184,6 @@ public class ConfigurationImpl implements Configuration {
 		return ((parameters.getClientId() != null) ? this.parameters.getClientId() : this.getGateId());
 	}
 
-
-	@Override
-	public IpMatcher getAllowedNetworkMatcher() {
-		return this.allowedNetworkMatcher;
-	}
 
 	@Override
 	public int getKeyLevel() {

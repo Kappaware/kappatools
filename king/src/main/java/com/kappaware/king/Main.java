@@ -41,9 +41,9 @@ public class Main {
 			config = new ConfigurationImpl(new ParametersImpl(argv));
 			EngineImpl engine = new EngineImpl(config);
 			Server mainServer = buildMainServer(config, engine);
-			final AdminServer adminServer = config.getAdminEndpoint() != null ? new AdminServer(config.getAdminEndpoint()) : null;
+			final AdminServer adminServer = config.getAdminBindAddress() != null ? new AdminServer(config.getAdminBindAddress()) : null;
 			if(adminServer != null) {
-				adminServer.setHandler(new AdminHandler(config.getAdminAllowedNetwork(), engine));
+				adminServer.setHandler(new AdminHandler(config.getAdminNetworkFilter(), engine));
 			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
