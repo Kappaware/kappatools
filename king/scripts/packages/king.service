@@ -1,0 +1,14 @@
+[Unit]
+Description=king - (Kafka In Gate) HTTP to kafka gateway
+
+[Service]
+User=king
+SyslogIdentifier=king
+TimeoutSec=15
+Restart=always
+Type=simple
+ExecStart=/bin/bash /opt/king/start.sh
+
+[Install]
+WantedBy=multi-user.target
+

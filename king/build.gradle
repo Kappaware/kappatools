@@ -14,7 +14,12 @@
  * limitations under the License.
  */
 
-defaultTasks 'fatJar'
+
+plugins {
+  id 'nebula.ospackage' version '3.4.0'
+}
+
+defaultTasks 'rpm'
 
 dependencies {
 	compile "org.slf4j:slf4j-log4j12:$sl4jLog4jVersion"
@@ -55,5 +60,44 @@ task run_main(type: JavaExec) {
 		args Eval.me(runArgs)	
 	}
 }
+
+
+
+task rpm(type: Rpm) {
+	summary 'http to Kafka gateway'
+	packageName 'king'
+	version versionForRpm
+	arch NOARCH
+	vendor 'BROADSoftware'
+	license 'Apache 2.0'
+	os LINUX
+	release '1'
+	packageDescription 'king is a web entry point intended to push in kafka every received payload.'
+	
+	requires('/usr/sbin/useradd')
+	requires('/usr/bin/getent')
+	requires('/usr/sbin/userdel')
+    
+   	from(fatJar.outputs.files) {
+	    into '/opt/king'
+	    user 'root'
+		group 'root'
+		rename 'king(.+).jar', 'king.jar'
+	    fileMode 0644
+    }
+    
+   	from('scripts/packages/init.sh') { into '/opt/king'; user 'root'; group 'root'; fileMode 0755  }
+   	from('scripts/packages/king.service') { into '/opt/king'; user 'root'; group 'root'; fileMode 0644  }
+   	from('scripts/packages/start.sh') { into '/opt/king'; user 'root'; group 'root'; fileMode 0755  }
+
+   	from('scripts/packages/log4j.xml') { into '/etc/king'; user 'root'; group 'root'; fileMode 0644  }
+   	from('scripts/packages/setenv.sh') { into '/etc/king'; user 'root'; group 'root'; fileMode 0644    }
+    
+    preInstall file('scripts/rpm/preInstall.sh')
+    postInstall file('scripts/rpm/postInstall.sh')
+    preUninstall file('scripts/rpm/preUninstall.sh')
+    postUninstall file('scripts/rpm/postUninstall.sh')
+}
+
 
 

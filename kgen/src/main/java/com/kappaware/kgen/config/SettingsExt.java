@@ -40,7 +40,7 @@ public class SettingsExt extends Settings {
 	
 	/**
 	 * Modify current value with non-null value of another settings
-	 * @param s
+	 * @param settings New Settings to apply
 	 */
 	@Override
 	public void apply(Settings settings) {

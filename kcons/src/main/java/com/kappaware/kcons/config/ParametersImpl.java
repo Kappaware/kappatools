@@ -50,7 +50,7 @@ public class ParametersImpl implements Parameters {
 	static OptionSpec<?> MESSON_OPT = parser.accepts("messon", "Display all read messages");
 
 	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
-	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("0.0.0.0/0");;
+	static OptionSpec<String> ADMIN_ALLOWED_NETWORK_OPT = parser.accepts("adminAllowedNetwork", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");;
 
 	@SuppressWarnings("serial")
 	private static class MyOptionException extends Exception {

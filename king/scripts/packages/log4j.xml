@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE log4j:configuration SYSTEM "log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+
+	<appender name="FILE" class="org.apache.log4j.RollingFileAppender">
+		<param name="File" value="/var/log/king/king.log" />
+		<param name="MaxFileSize" value="4MB" />
+		<param name="MaxBackupIndex" value="9" />
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="%d %5p %c:%L %m %n" />
+		</layout>
+	</appender>
+
+	<logger name="com.kappaware"><level value="info" /></logger>
+	<logger name="org.apache.http"><level value="info" /></logger>
+	<logger name="kafka"><level value="warn" /></logger>
+	<logger name="org.apache.kafka"><level value="warn" /></logger>
+	<logger name="org.apache.zookeeper"><level value="warn" /></logger>
+	<logger name="org.I0Itec.zkclient"><level value="warn" /></logger>
+ 	<logger name="org.eclipse.jetty"><level value="warn"/></logger>
+
+
+	<root>
+		<level value="info" />
+		<appender-ref ref="FILE" />
+	</root>
+
+</log4j:configuration>
+
+ 
