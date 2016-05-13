@@ -16,7 +16,16 @@
  */
  
 
-defaultTasks 'fatJar'
+defaultTasks 'all'
+ 
+task all(type: GradleBuild) {
+	tasks = [
+		':k2K:fatJar', 
+		':kcons:fatJar', 
+		':kgen:fatJar', 
+		':king:rpm' 
+	]
+}
 
 subprojects {
 

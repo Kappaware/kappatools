@@ -63,7 +63,7 @@ JOPTS="$JOPTS -Dlog4j.configuration=file:/etc/king/log4j.xml"
 
 # Allow to restrict range of IP allowed to access this admin server.
 # Default is to allow only from localhost: 
-# OPTS="$OPTS --dminAllowedNetworks 127.0.0.1/32"
+# OPTS="$OPTS --adminAllowedNetworks 127.0.0.1/32"
 
 # Define the sampling period for throughput statistics evaluation.
 # May be modified through the REST admin interface
