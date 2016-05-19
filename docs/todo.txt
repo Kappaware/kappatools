@@ -1,0 +1,10 @@
+
+
+- Handling of UNKNOWN_TOPIC_OR_PARTITION. Currently, loop in an infinite WARN message storm (At least for king) 
+
+- krrst: read reset, to cleanup a read pointer.
+
+- koutg; Output to HTTP
+
+- k2jdbc: output to RDBMS using jdbc
+

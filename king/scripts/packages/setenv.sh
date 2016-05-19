@@ -10,7 +10,7 @@ JOPTS="$JOPTS -Dlog4j.configuration=file:/etc/king/log4j.xml"
 
 # Set kafka bootstrap server(s)
 # Define the kafka cluster to store incoming message
-# OPTS="$OPTS --brokers srv1:9092,srv2:9092,srv3:9092"
+# OPTS="$OPTS --brokers 'srv1:9092,srv2:9092,srv3:9092'"
 
 # Set gate ID (Must be globally unique)
 # This will be used to tag every incoming message, as part of extTs (Extended Timestamp)
