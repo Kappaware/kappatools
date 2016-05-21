@@ -12,8 +12,10 @@ import java.sql.Types;
 import java.util.Arrays;
 import java.util.Calendar;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.Vector;
 
 import javax.sql.DataSource;
@@ -30,12 +32,11 @@ public class DbEngineImpl implements DbEngine {
 
 	private DataSource dataSource;
 	private DbCatalog dbCatalog;
-	
+	private Set<String> warnedField = new HashSet<String>();
 
 	public DbEngineImpl(DataSource dataSource) {
 		this.dataSource = dataSource;
 	}
-
 
 	/*
 	 * We need to rebuild a different preparedStatement for each record, as the only way of using column's default value is to NOT have the column is the definition
@@ -48,7 +49,7 @@ public class DbEngineImpl implements DbEngine {
 	 */
 	@Override
 	public void write(String tableName, List<Map<String, Object>> dataSet) throws SQLException, IOException {
-		DbTableDef tableDef =  this.getDbCatalog().getTableDef(tableName);
+		DbTableDef tableDef = this.getDbCatalog().getTableDef(tableName);
 		Connection connection = null;
 		PreparedStatement statement = null;
 		try {
@@ -65,15 +66,20 @@ public class DbEngineImpl implements DbEngine {
 					String sep = "";
 					for (String fieldName : fieldNames) {
 						DbColumnDef column = tableDef.getColumnDef(fieldName);
-						if (column == null) {
+						if (column != null) {
+							fields.append(sep);
+							fields.append(column.getName());
+							params.append(sep);
+							params.append("?");
+							sep = ", ";
+						} else {
 							// A field is present in JSON, but not in DB. Forget it
-							log.warn(String.format("Field '%s' does not exists in table '%s' (row# %d)", fieldName, tableDef.getName(), rowNum));
+							if (!this.warnedField.contains(fieldName)) {
+								log.warn(String.format("Field '%s' does not exists in table '%s' (row# %d)", fieldName, tableDef.getName(), rowNum));
+								this.warnedField.add(fieldName);
+								//throw new SQLException("xxxxxx");
+							}
 						}
-						fields.append(sep);
-						fields.append(column.getName());
-						params.append(sep);
-						params.append("?");
-						sep = ", ";
 					}
 					String sql = String.format("INSERT INTO %s ( %s ) VALUES ( %s )", tableDef.getName(), fields.toString(), params.toString());
 					statement = connection.prepareStatement(sql);
@@ -81,7 +87,9 @@ public class DbEngineImpl implements DbEngine {
 					statement.clearParameters();
 					for (String fieldName : fieldNames) {
 						DbColumnDef column = tableDef.getColumnDef(fieldName);
-						this.setStatementParameter(statement, pos++, column.getJdbcType(), row.get(fieldName), rowNum);
+						if (column != null) {
+							this.setStatementParameter(statement, pos++, column.getJdbcType(), row.get(fieldName), rowNum);
+						}
 					}
 					int x = statement.executeUpdate();
 					if (x != 1) {
@@ -114,8 +122,8 @@ public class DbEngineImpl implements DbEngine {
 				} catch (SQLException e) {
 				}
 			}
-		}		
-		
+		}
+
 	}
 
 	@Override
@@ -127,8 +135,8 @@ public class DbEngineImpl implements DbEngine {
 			connection = this.dataSource.getConnection();
 			statement = connection.prepareStatement(query);
 			statement.clearParameters();
-			if(params != null) {
-				for(int i = 0; i < params.length; i++) {
+			if (params != null) {
+				for (int i = 0; i < params.length; i++) {
 					statement.setObject(i + 1, params[i]);
 				}
 			}
@@ -210,13 +218,11 @@ public class DbEngineImpl implements DbEngine {
 
 	@Override
 	public DbCatalog getDbCatalog() {
-		if(this.dbCatalog == null) {
+		if (this.dbCatalog == null) {
 			this.dbCatalog = new DbCatalogImpl(this.dataSource);
 		}
 		return this.dbCatalog;
 	}
-
-	
 
 	private void setStatementParameter(PreparedStatement statement, int pos, int jdbcType, Object value, int rowNum) throws SQLException {
 		if (value == null) {
@@ -228,7 +234,7 @@ public class DbEngineImpl implements DbEngine {
 				switch (jdbcType) {
 					case Types.VARCHAR:
 					case Types.CHAR:
-						statement.setString(pos, value.toString());
+						statement.setString(pos, (value instanceof byte[]) ? new String((byte[]) value) : value.toString());
 					break;
 					case Types.NUMERIC:
 						statement.setBigDecimal(pos, (value instanceof BigDecimal) ? (BigDecimal) value : new BigDecimal(value.toString()));
@@ -258,7 +264,10 @@ public class DbEngineImpl implements DbEngine {
 					case Types.TIMESTAMP:
 						statement.setTimestamp(pos, toSqlTimestamp(value, rowNum));
 					break;
+					case Types.VARBINARY:
 					case Types.BINARY:
+						statement.setBytes(pos, (value instanceof byte[]) ? (byte[]) value : value.toString().getBytes());
+					break;
 					case Types.CLOB:
 					case Types.BLOB:
 					case Types.ARRAY:
@@ -272,7 +281,6 @@ public class DbEngineImpl implements DbEngine {
 			}
 		}
 	}
-
 
 	private java.sql.Timestamp toSqlTimestamp(Object value, int rowNum) throws SQLException {
 		if (value instanceof java.sql.Timestamp) {
@@ -319,7 +327,7 @@ public class DbEngineImpl implements DbEngine {
 			throw new SQLException(String.format("Unable to convert object '%s' of class '%s' to a valid Time (row# %d)", value.toString(), value.getClass().getName(), rowNum));
 		}
 	}
-	
+
 	/*
 	static public void main(String[] argc) {
 		Long now = System.currentTimeMillis();
@@ -338,7 +346,7 @@ public class DbEngineImpl implements DbEngine {
 			throw new SQLException(String.format("Unable to convert string '%s' to a valid Date", date));
 		}
 	}
-	
+
 	private static Object getTypedValueFromResultSet(ResultSet resultSet, int idx, ResultSetMetaData rsmd) throws SQLException {
 		Object o;
 		int jdbcType = rsmd.getColumnType(idx);
@@ -406,6 +414,4 @@ public class DbEngineImpl implements DbEngine {
 		return o;
 	}
 
-	
-	
 }

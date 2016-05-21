@@ -22,9 +22,11 @@ dependencies {
     compile "log4j:log4j:$log4jVersion"
     compile "com.mchange:c3p0:$c3p0version"
     compile "net.sf.jopt-simple:jopt-simple:$joptVersion"
+    compile "org.postgresql:postgresql:$postgresqlJdbcVersion"
     compile project(':kcommon')
     testCompile "junit:junit:$junitVersion"
 }
+ 		
 
 
 jar {

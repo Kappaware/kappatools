@@ -46,8 +46,7 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG,
 		ConsumerConfig.AUTO_COMMIT_INTERVAL_MS_CONFIG,
 		ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, 
-		ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
-		ConsumerConfig.AUTO_OFFSET_RESET_CONFIG
+		ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG
 		
 	}));
 
@@ -55,7 +54,8 @@ public class ConfigurationImpl implements Configuration {
 		ConsumerConfig.GROUP_ID_CONFIG, 
 		ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, 
 		ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,
-		ConsumerConfig.CLIENT_ID_CONFIG 
+		ConsumerConfig.CLIENT_ID_CONFIG, 
+		ConsumerConfig.AUTO_OFFSET_RESET_CONFIG
 	}));
 
 	
@@ -77,6 +77,7 @@ public class ConfigurationImpl implements Configuration {
 		this.consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getBrokers());
 		this.consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, this.parameters.getConsumerGroup());
 		this.consumerProperties.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
+		this.consumerProperties.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
 		this.consumerProperties.put(ConsumerConfig.CLIENT_ID_CONFIG, this.parameters.getClientId());
 		if (this.parameters.getProperties() != null && this.parameters.getProperties().trim().length() > 0) {
 			String[] sp = this.parameters.getProperties().split(",");
@@ -139,7 +140,7 @@ public class ConfigurationImpl implements Configuration {
 				case phoenix:
 					jdbcDriverClassName = "org.apache.phoenix.jdbc.PhoenixDriver";
 				break;
-				case postgrsql:
+				case postgresql:
 					jdbcDriverClassName = "org.postgresql.Driver";
 				break;
 			}
@@ -152,7 +153,7 @@ public class ConfigurationImpl implements Configuration {
 	}
 
 	enum DbType {
-		postgrsql, phoenix
+		postgresql, phoenix
 	}
 
 	// ----------------------------------------------------------

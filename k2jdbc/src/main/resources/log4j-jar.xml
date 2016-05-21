@@ -8,7 +8,7 @@
             <param name="ConversionPattern" value="[%d{ISO8601}] %-5p %c:%L %m %n" />
         </layout>
         <filter class="org.apache.log4j.varia.LevelRangeFilter">
-            <param name="LevelMin" value="INFO"/>
+            <param name="LevelMin" value="TRACE"/>
         </filter>
     </appender>
     
@@ -24,13 +24,14 @@
     </appender>
     
     
- 	<logger name="com.kappaware"><level value="info"/></logger>
+ 	<logger name="com.kappaware"><level value="debug"/></logger>
     
     <logger name="kafka"><level value="info"/></logger>
  	<logger name="org.apache.kafka"><level value="warn"/></logger>
  	<logger name="org.apache.zookeeper"><level value="warn"/></logger>
  	<logger name="org.I0Itec.zkclient"><level value="warn"/></logger>
  	<logger name="org.eclipse.jetty"><level value="warn"/></logger>
+ 	<logger name="com.mchange"><level value="warn"/></logger>
     
     
     

@@ -15,8 +15,8 @@ public class Main {
 
 	static public void main(String[] argv) throws Exception {
 
-		log.info("kcons start");
-
+		log.info("k2jdbc start");
+		log.debug("DEBUG MODE ON");
 		Configuration config;
 		try {
 			config = new ConfigurationImpl(new ParametersImpl(argv));
@@ -24,6 +24,7 @@ public class Main {
 			final AdminServer adminServer = config.getAdminBindAddress() != null ? new AdminServer(config.getAdminBindAddress()) : null;
 			if(adminServer != null) {
 				adminServer.setHandler(new AdminHandler(config.getAdminNetworkFilter(), engine));
+				engine.setAdminServer(adminServer);
 			}
 			Runtime.getRuntime().addShutdownHook(new Thread() {
 				@Override
@@ -37,6 +38,7 @@ public class Main {
 							log.error("Error in server shutdown", e1);
 						}
 					}
+					engine.setAdminServer(null);
 					engine.halt();
 					try {
 						engine.join();
@@ -48,12 +50,15 @@ public class Main {
 					} catch (InterruptedException e) {
 						log.debug("Interrupted in sleep");
 					}
-					log.info("kcons end");
+					log.info("k2jdbc end");
 				}
 			});
 			engine.start();
 			if(adminServer != null) {
+				// In order to have the adminServer as a daemon thread, we temporary switch our current one, as it will be inherited.
+				//Thread.currentThread().setDaemon(true);
 				adminServer.start();
+				//Thread.currentThread().setDaemon(false);
 			}
 		} catch (ConfigurationException e) {
 			log.error(e.getMessage());

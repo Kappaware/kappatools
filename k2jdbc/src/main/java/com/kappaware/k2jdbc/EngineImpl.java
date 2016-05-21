@@ -20,6 +20,7 @@ import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Vector;
@@ -43,14 +44,19 @@ import com.kappaware.k2jdbc.jdbc.DbEngineImpl;
 import com.kappaware.kappatools.kcommon.Engine;
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kappatools.kcommon.config.Settings;
+import com.kappaware.kappatools.kcommon.jetty.AdminServer;
 import com.kappaware.kappatools.kcommon.stats.AbstractStats;
 
 public class EngineImpl extends Thread implements Engine {
-	private static final int BATCH_SIZE = 500;
+	private static final int BATCH_SIZE = 2000;
 
 	private static final String KFK_TOPIC = "kfk_topic";
 	private static final String KFK_PARTITION = "kfk_partition";
 	private static final String KFK_OFFSET = "kfk_offset";
+
+	private static final String KFK_KEY = "kfk_key";
+	private static final String KFK_VALUE = "kfk_value";
+	private static final String KEY_PREFIX = "kfkey";
 
 	static Logger log = LoggerFactory.getLogger(EngineImpl.class);
 
@@ -63,6 +69,9 @@ public class EngineImpl extends Thread implements Engine {
 	private DbEngine dbEngine;
 	private JSON json = JSON.std;
 	private String offsetQuery;
+	private AdminServer adminServer = null;
+	
+
 
 	public EngineImpl(Configuration config) throws ConfigurationException, SQLException {
 		this.config = config;
@@ -70,28 +79,34 @@ public class EngineImpl extends Thread implements Engine {
 		this.settings = config.getSettings();
 		this.dbEngine = new DbEngineImpl(this.config.getTargetDataSource());
 		DbTableDef tableDef = this.dbEngine.getDbCatalog().getTableDef(this.config.getTargetTable());
-		if(tableDef == null) {
-			throw new ConfigurationException(String.format("Table '%s' does not exist in this database", this.config.getTargetDataSource()));
+		if (tableDef == null) {
+			throw new ConfigurationException(String.format("Table '%s' does not exist in this database", this.config.getTargetTable()));
 		}
 		DbColumnDef cd;
-		if(  (cd = tableDef.getColumnDef(KFK_TOPIC)) == null || (cd.getJdbcType() != Types.CHAR && cd.getJdbcType() != Types.VARCHAR) ) {
+		if ((cd = tableDef.getColumnDef(KFK_TOPIC)) == null || (cd.getJdbcType() != Types.CHAR && cd.getJdbcType() != Types.VARCHAR)) {
 			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type VARCHAR", this.config.getTargetTable(), KFK_TOPIC));
 		}
-		if(  (cd = tableDef.getColumnDef(KFK_PARTITION)) == null || (cd.getJdbcType() != Types.TINYINT && cd.getJdbcType() != Types.INTEGER && cd.getJdbcType() != Types.BIGINT) ) {
+		if ((cd = tableDef.getColumnDef(KFK_PARTITION)) == null || (cd.getJdbcType() != Types.TINYINT && cd.getJdbcType() != Types.INTEGER && cd.getJdbcType() != Types.BIGINT)) {
 			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type INTEGER", this.config.getTargetTable(), KFK_PARTITION));
 		}
-		if(  (cd = tableDef.getColumnDef(KFK_OFFSET)) == null || (cd.getJdbcType() != Types.BIGINT) ) {
+		if ((cd = tableDef.getColumnDef(KFK_OFFSET)) == null || (cd.getJdbcType() != Types.BIGINT)) {
 			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type BIGINT", this.config.getTargetTable(), KFK_OFFSET));
 		}
 		this.offsetQuery = String.format("SELECT MAX(%s) AS max_offset FROM %s WHERE %s = '%s' AND %s = ?", KFK_OFFSET, this.config.getTargetTable(), KFK_TOPIC, this.config.getTopic(), KFK_PARTITION);
 	}
 
+	/**
+	 * We need to set eventual adminServer, to stop it in case of end of run. (As AdminServer is not a daemon, the program will still run in such case)
+	 * @param adminServer
+	 */
+	public void setAdminServer(AdminServer adminServer) {
+		this.adminServer = adminServer;
+	}
+
 	@Override
 	public void run() {
-		
 
 		consumer.subscribe(Arrays.asList(new String[] { config.getTopic() }), new ConsumerRebalanceListener() {
-
 			@Override
 			public void onPartitionsRevoked(Collection<TopicPartition> partitions) {
 				log.info(String.format("ConsumerRebalanceListener - Revoked partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
@@ -101,12 +116,20 @@ public class EngineImpl extends Thread implements Engine {
 			public void onPartitionsAssigned(Collection<TopicPartition> partitions) {
 				log.info(String.format("ConsumerRebalanceListener - Assigned partitions: %s", partitions.stream().map(TopicPartition::partition).collect(Collectors.toList())));
 				stats.newConsumerStats(partitions);
-				for(TopicPartition tp : partitions) {
+				log.debug("Will lookup offset in the target table");
+				for (TopicPartition tp : partitions) {
 					try {
 						List<Map<String, Object>> result = dbEngine.query(offsetQuery, new Object[] { tp.partition() });
-						Long offset = (Long)result.get(0).get("max_offset");
-						consumer.seek(tp, offset);
+						Long offset = null;
+						if (result != null && result.size() >= 1 && (offset = (Long) result.get(0).get("max_offset")) != null) {
+							log.debug(String.format("Will seek to %d for partition %d", offset +1, tp.partition()));
+							consumer.seek(tp, offset + 1);
+						} else {
+							log.debug(String.format("Will seek to beginning for partition %d", tp.partition()));
+							consumer.seekToBeginning(tp);
+						}
 					} catch (Exception e) {
+						running = false;
 						throw new RuntimeException(String.format("Unable to read offset from database (request:%s)", offsetQuery), e);
 					}
 				}
@@ -121,16 +144,10 @@ public class EngineImpl extends Thread implements Engine {
 					log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), new String(record.key()), new String(record.value())));
 				}
 				stats.addToConsumerStats(record.key(), record.partition(), record.offset());
-				Map<String, Object> data = this.byteArray2Map(record.value());
-				if (data != null) {
-					data.put(KFK_TOPIC, this.config.getTopic());
-					data.put(KFK_PARTITION, record.partition());
-					data.put(KFK_OFFSET, record.offset());
-					dataSet.add(data);
-					if (dataSet.size() >= BATCH_SIZE) {
-						write(dataSet);
-						dataSet = new Vector<Map<String, Object>>();
-					}
+				dataSet.add(this.buildDbRecord(record));
+				if (dataSet.size() >= BATCH_SIZE) {
+					write(dataSet);
+					dataSet = new Vector<Map<String, Object>>();
 				}
 			}
 			if (dataSet.size() > 0) {
@@ -140,6 +157,55 @@ public class EngineImpl extends Thread implements Engine {
 		}
 		this.consumer.close();
 		this.dbEngine.close();
+		if(this.adminServer != null) { 
+			try {
+				this.adminServer.halt();
+			} catch (Exception e) {
+				log.error("Error in AdminServer.halt()", e);
+			}
+		}
+	}
+
+	Map<String, Object> buildDbRecord(ConsumerRecord<byte[], byte[]> kfkRecord) {
+		Map<String, Object> dbRecord;
+		// Base for dbrecord is the message value, if it is parseable as json.
+		try {
+			dbRecord = json.mapFrom(kfkRecord.value());
+		} catch (IOException e) {
+			log.trace(String.format("Unable to parse '%s' - '%s' as a JSON message", new String(kfkRecord.value()), Arrays.toString(kfkRecord.value())));
+			dbRecord = new HashMap<String, Object>();
+		}
+		// Add specific mandatory kafka fields
+		dbRecord.put(KFK_TOPIC, this.config.getTopic());
+		dbRecord.put(KFK_PARTITION, kfkRecord.partition());
+		dbRecord.put(KFK_OFFSET, kfkRecord.offset());
+		// We add some fields. They will be unused if not present in the table during the write.
+		dbRecord.put(KFK_VALUE, kfkRecord.value());
+		dbRecord.put(KFK_KEY, kfkRecord.key());
+		try {
+			Map<String, Object> key = json.mapFrom(kfkRecord.key());
+			dbRecord.put(KEY_PREFIX, key);
+		} catch (IOException e) {
+			log.debug(String.format("Unable to parse '%s' as a JSON message", Arrays.toString(kfkRecord.key())));
+		}
+		Map<String, Object> flattenDbRecord = new HashMap<String, Object>();
+		flatMap(flattenDbRecord, dbRecord, "");
+		return flattenDbRecord;
+	}
+
+	@SuppressWarnings("unchecked")
+	private void flatMap(Map<String, Object> target, Map<String, Object> current, String prefix) {
+		for (Map.Entry<String, Object> entry : current.entrySet()) {
+			if (entry.getValue() instanceof Map<?, ?>) {
+				flatMap(target, (Map<String, Object>) entry.getValue(), entry.getKey() + "_");
+			} else {
+				if (target.containsKey(prefix + entry.getKey())) {
+					log.warn(String.format("Name clash on '%s' when flattening record. Some data may be lost", prefix + entry.getKey()));
+				} else {
+					target.put((prefix + entry.getKey()).toLowerCase(), entry.getValue());
+				}
+			}
+		}
 	}
 
 	private void write(List<Map<String, Object>> dataSet) {
@@ -148,15 +214,6 @@ public class EngineImpl extends Thread implements Engine {
 		} catch (SQLException | IOException e) {
 			log.error("Exception while writing in db...", e);
 			this.running = false;
-		}
-	}
-
-	private Map<String, Object> byteArray2Map(byte[] value) {
-		try {
-			return json.mapFrom(new String(value));
-		} catch (IOException e) {
-			log.warn(String.format("Unable to parse '%s' as a JSON message", Arrays.toString(value)));
-			return null;
 		}
 	}
 

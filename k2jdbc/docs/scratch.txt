@@ -1,0 +1,14 @@
+
+gradle fatJar; java -jar build/libs/k2jdbc-0.6.2-SNAPSHOT.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client2 --statson --adminEndpoint "20166" --samplingPeriod 1000 --jdbcUrl jdbc:postgresql://localhost:5432/kappatools --dbUser postgres --dbPassword Netbios --table test1
+
+gradle fatJar; java -jar build/libs/k2jdbc-0.6.2-SNAPSHOT.jar --consumerGroup grp1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --clientId client2 --statson --adminEndpoint "20166" --samplingPeriod 1000 --jdbcUrl jdbc:postgresql://10.0.2.2:5432/kappatools --dbUser postgres --dbPassword Netbios --table test1
+
+kill -9 $(ps aux | grep '[k]2jdbc' | awk '{print $2}')
+
+gradle fatJar; java -jar build/libs/kgen-0.6.2-SNAPSHOT.jar -gateId gen1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic test1 --period 1000 --samplingPeriod 1000 --burstCount 2 --initialCounter 0 --adminEndpoint "20165" --statson
+
+
+gradle fatJar; java -jar build/libs/kgen-0.6.2-SNAPSHOT.jar -gateId gen1 --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic app1-topic1 --period 0 --samplingPeriod 5000 --burstCount 1 --initialCounter 190 --adminEndpoint "20165" --statson
+
+gradle fatJar; java -jar build/libs/k2jdbc-0.6.2-SNAPSHOT.jar --consumerGroup test1b --brokers "wn1.kfk2:9092,wn2.kfk2:9092,wn3.kfk2:9092" --topic app1-topic1  --clientId client2  --adminEndpoint "20166" --samplingPeriod 5000 --jdbcUrl jdbc:postgresql://10.0.2.2:5432/kappatools --dbUser postgres --dbPassword Netbios --table test1 --statson
+
