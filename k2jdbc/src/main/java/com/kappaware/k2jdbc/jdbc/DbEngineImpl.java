@@ -200,9 +200,9 @@ public class DbEngineImpl implements DbEngine {
 
 	/**
 	 * Excecute an SQL command whch return no reult set
-	 * @param sql
-	 * @return
-	 * @throws SQLException
+	 * @param sql The request to execute
+	 * @return Number of affected row
+	 * @throws DbEngineException In case of error
 	 */
 
 	@Override

@@ -105,9 +105,8 @@ public class EngineImpl extends Thread implements Engine {
 		this.offsetQuery = String.format("SELECT MAX(%s) AS max_offset FROM %s WHERE %s = '%s' AND %s = ?", kfk_offset, this.config.getTargetTable(), kfk_topic, this.config.getTopic(), kfk_partition);
 	}
 
-	/**
+	/*
 	 * We need to set eventual adminServer, to stop it in case of end of run. (As AdminServer is not a daemon, the program will still run in such case)
-	 * @param adminServer
 	 */
 	public void setAdminServer(AdminServer adminServer) {
 		this.adminServer = adminServer;
