@@ -38,6 +38,8 @@ public class ParametersImpl implements Parameters {
 	private String dbUser;
 	private String dbPassword;
 	private String jdbcDriverClassName;
+	private String colMapping;
+	private boolean preserveCase;
 	
 	static OptionParser parser = new OptionParser();
 	static {
@@ -63,6 +65,8 @@ public class ParametersImpl implements Parameters {
 	static OptionSpec<String> DB_USER_OPT = parser.accepts("dbUser", "User for database access").withRequiredArg().describedAs("john").ofType(String.class).required();
 	static OptionSpec<String> DB_PASSWORD_OPT = parser.accepts("dbPassword", "Password for database access").withRequiredArg().describedAs("xxxxxx").ofType(String.class).required();
 	static OptionSpec<String> JDBC_DRIVE_CLASS_NAME_OPT = parser.accepts("jdbcDriverClassName", "Jdbc Driver class name. (Default Will be deduced from jdbcUrl)").withRequiredArg().describedAs("org.provider.driver").ofType(String.class);
+	static OptionSpec<String> COL_MAPPING_OPT = parser.accepts("colMapping", "DB Column mapping").withRequiredArg().describedAs("colA=fieldX,col2=fieldY").ofType(String.class);
+	static OptionSpec<?> PRESERVE_CASE = parser.accepts("preserveCase", "Preserve case for column name (Default is to lower case)");
 	
 	@SuppressWarnings("serial")
 	private static class MyOptionException extends Exception {
@@ -100,6 +104,8 @@ public class ParametersImpl implements Parameters {
 			this.dbUser = result.valueOf(DB_USER_OPT);
 			this.dbPassword = result.valueOf(DB_PASSWORD_OPT);
 			this.jdbcDriverClassName = result.valueOf(JDBC_DRIVE_CLASS_NAME_OPT);
+			this.colMapping = result.valueOf(COL_MAPPING_OPT);
+			this.preserveCase = result.has(PRESERVE_CASE);
 
 		} catch (OptionException | MyOptionException t) {
 			throw new ConfigurationException(usage(t.getMessage()));
@@ -189,6 +195,14 @@ public class ParametersImpl implements Parameters {
 
 	public String getJdbcDriverClassName() {
 		return this.jdbcDriverClassName;
+	}
+
+	public String getColMapping() {
+		return colMapping;
+	}
+
+	public boolean isPreserveCase() {
+		return preserveCase;
 	}
 
 }

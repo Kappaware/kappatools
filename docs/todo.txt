@@ -6,5 +6,5 @@
 
 - koutg; Output to HTTP
 
-- k2jdbc: output to RDBMS using jdbc
+DONE - k2jdbc: output to RDBMS using jdbc
 

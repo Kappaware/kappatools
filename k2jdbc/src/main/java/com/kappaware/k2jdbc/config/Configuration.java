@@ -1,6 +1,7 @@
 package com.kappaware.k2jdbc.config;
 
 import java.net.InetSocketAddress;
+import java.util.Map;
 import java.util.Properties;
 
 import javax.sql.DataSource;
@@ -27,5 +28,9 @@ public interface Configuration {
 	DataSource getTargetDataSource();
 
 	String getTargetTable();
+
+	Map<String, String> getColMapping();
+
+	boolean isPreserveCase();
 
 }

@@ -15,9 +15,11 @@
  */
 package com.kappaware.kappatools.kcommon;
 
+import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Map;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.DatatypeConverter;
@@ -25,6 +27,8 @@ import javax.xml.bind.DatatypeConverter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.fasterxml.jackson.jr.ob.JSON;
+import com.fasterxml.jackson.jr.ob.JSON.Feature;
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 
 public class Utils {
@@ -59,9 +63,6 @@ public class Utils {
 		}
 	}
 
-	
-	
-	
 	public static String printIsoDateTime(Long ts) {
 		if (ts != null) {
 			Calendar c = Calendar.getInstance();
@@ -71,8 +72,7 @@ public class Utils {
 			return null;
 		}
 	}
-	
-	
+
 	public static InetSocketAddress parseEndpoint(String endpoint) throws ConfigurationException {
 		try {
 			String[] endp = endpoint.split(":");
@@ -89,6 +89,26 @@ public class Utils {
 			throw new ConfigurationException(String.format("Missing or invalid endpoint:%s", endpoint));
 		}
 	}
+
+	public static boolean isNullOrEmpty(String s) {
+		if (s == null) {
+			return true;
+		} else {
+			return s.trim().length() == 0;
+		}
+	}
+
+
 	
+	// For quick and dirty debug purpose
+	static JSON djson = JSON.std.with(Feature.PRETTY_PRINT_OUTPUT);
+
+	public static String jsonPrettyString(Map<String, Object> m) {
+		try {
+			return djson.asString(m);
+		} catch (IOException e) {
+			return "ERROR ON JSON GENERATION";
+		}
+	}
 
 }

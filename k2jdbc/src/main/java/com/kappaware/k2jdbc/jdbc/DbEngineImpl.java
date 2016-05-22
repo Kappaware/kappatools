@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 
 import com.kappaware.k2jdbc.jdbc.DbCatalog.DbColumnDef;
 import com.kappaware.k2jdbc.jdbc.DbCatalog.DbTableDef;
+import com.kappaware.kappatools.kcommon.Utils;
 
 public class DbEngineImpl implements DbEngine {
 	static Logger log = LoggerFactory.getLogger(DbEngineImpl.class);
@@ -52,6 +53,7 @@ public class DbEngineImpl implements DbEngine {
 		DbTableDef tableDef = this.getDbCatalog().getTableDef(tableName);
 		Connection connection = null;
 		PreparedStatement statement = null;
+		String sql = null;
 		try {
 			connection = this.dataSource.getConnection();
 			connection.setAutoCommit(false);
@@ -81,22 +83,26 @@ public class DbEngineImpl implements DbEngine {
 							}
 						}
 					}
-					String sql = String.format("INSERT INTO %s ( %s ) VALUES ( %s )", tableDef.getName(), fields.toString(), params.toString());
-					statement = connection.prepareStatement(sql);
-					int pos = 1;
-					statement.clearParameters();
-					for (String fieldName : fieldNames) {
-						DbColumnDef column = tableDef.getColumnDef(fieldName);
-						if (column != null) {
-							this.setStatementParameter(statement, pos++, column.getJdbcType(), row.get(fieldName), rowNum);
+					if (Utils.isNullOrEmpty(fields.toString())) {
+						log.warn("Record with no values!!. Skipped");
+					} else {
+						sql = String.format("INSERT INTO %s ( %s ) VALUES ( %s )", tableDef.getName(), fields.toString(), params.toString());
+						statement = connection.prepareStatement(sql);
+						int pos = 1;
+						statement.clearParameters();
+						for (String fieldName : fieldNames) {
+							DbColumnDef column = tableDef.getColumnDef(fieldName);
+							if (column != null) {
+								this.setStatementParameter(statement, pos++, column.getJdbcType(), row.get(fieldName), rowNum);
+							}
 						}
+						int x = statement.executeUpdate();
+						if (x != 1) {
+							throw new SQLException(String.format("Insert statement returned %d rows affected!! - Should be 1 (row# %d)", x, rowNum));
+						}
+						statement.close();
+						statement = null;
 					}
-					int x = statement.executeUpdate();
-					if (x != 1) {
-						throw new SQLException(String.format("Insert statement returned %d rows affected!! - Should be 1 (row# %d)", x, rowNum));
-					}
-					statement.close();
-					statement = null;
 				}
 				rowNum++;
 			}
@@ -108,6 +114,7 @@ public class DbEngineImpl implements DbEngine {
 				} catch (SQLException e) {
 				}
 			}
+			log.error(String.format("Error on SQL write. sql='%s' => %s", sql, t.getMessage()));
 			throw t;
 		} finally {
 			if (statement != null) {

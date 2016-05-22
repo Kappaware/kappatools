@@ -56,6 +56,7 @@ public class EngineImpl extends Thread implements Engine {
 
 	private static final String KFK_KEY = "kfk_key";
 	private static final String KFK_VALUE = "kfk_value";
+	
 	private static final String KEY_PREFIX = "kfkey";
 
 	static Logger log = LoggerFactory.getLogger(EngineImpl.class);
@@ -70,11 +71,22 @@ public class EngineImpl extends Thread implements Engine {
 	private JSON json = JSON.std;
 	private String offsetQuery;
 	private AdminServer adminServer = null;
+	private String kfk_topic;
+	private String kfk_partition;
+	private String kfk_offset;
+	private String kfk_key;
+	private String kfk_value;
+	
 	
 
 
 	public EngineImpl(Configuration config) throws ConfigurationException, SQLException {
 		this.config = config;
+		this.kfk_topic = this.mapColName(KFK_TOPIC);
+		this.kfk_partition = this.mapColName(KFK_PARTITION);
+		this.kfk_offset = this.mapColName(KFK_OFFSET);
+		this.kfk_key = this.mapColName(KFK_KEY);
+		this.kfk_value = this.mapColName(KFK_VALUE);
 		consumer = new KafkaConsumer<byte[], byte[]>(config.getConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
 		this.settings = config.getSettings();
 		this.dbEngine = new DbEngineImpl(this.config.getTargetDataSource());
@@ -83,16 +95,16 @@ public class EngineImpl extends Thread implements Engine {
 			throw new ConfigurationException(String.format("Table '%s' does not exist in this database", this.config.getTargetTable()));
 		}
 		DbColumnDef cd;
-		if ((cd = tableDef.getColumnDef(KFK_TOPIC)) == null || (cd.getJdbcType() != Types.CHAR && cd.getJdbcType() != Types.VARCHAR)) {
-			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type VARCHAR", this.config.getTargetTable(), KFK_TOPIC));
+		if ((cd = tableDef.getColumnDef(kfk_topic)) == null || (cd.getJdbcType() != Types.CHAR && cd.getJdbcType() != Types.VARCHAR)) {
+			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type VARCHAR", this.config.getTargetTable(), kfk_topic));
 		}
-		if ((cd = tableDef.getColumnDef(KFK_PARTITION)) == null || (cd.getJdbcType() != Types.TINYINT && cd.getJdbcType() != Types.INTEGER && cd.getJdbcType() != Types.BIGINT)) {
-			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type INTEGER", this.config.getTargetTable(), KFK_PARTITION));
+		if ((cd = tableDef.getColumnDef(kfk_partition)) == null || (cd.getJdbcType() != Types.TINYINT && cd.getJdbcType() != Types.INTEGER && cd.getJdbcType() != Types.BIGINT)) {
+			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type INTEGER", this.config.getTargetTable(), kfk_partition));
 		}
-		if ((cd = tableDef.getColumnDef(KFK_OFFSET)) == null || (cd.getJdbcType() != Types.BIGINT)) {
-			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type BIGINT", this.config.getTargetTable(), KFK_OFFSET));
+		if ((cd = tableDef.getColumnDef(kfk_offset)) == null || (cd.getJdbcType() != Types.BIGINT)) {
+			throw new ConfigurationException(String.format("Table '%s' need a column '%s' of type BIGINT", this.config.getTargetTable(), kfk_offset));
 		}
-		this.offsetQuery = String.format("SELECT MAX(%s) AS max_offset FROM %s WHERE %s = '%s' AND %s = ?", KFK_OFFSET, this.config.getTargetTable(), KFK_TOPIC, this.config.getTopic(), KFK_PARTITION);
+		this.offsetQuery = String.format("SELECT MAX(%s) AS max_offset FROM %s WHERE %s = '%s' AND %s = ?", kfk_offset, this.config.getTargetTable(), kfk_topic, this.config.getTopic(), kfk_partition);
 	}
 
 	/**
@@ -166,6 +178,7 @@ public class EngineImpl extends Thread implements Engine {
 		}
 	}
 
+	
 	Map<String, Object> buildDbRecord(ConsumerRecord<byte[], byte[]> kfkRecord) {
 		Map<String, Object> dbRecord;
 		// Base for dbrecord is the message value, if it is parseable as json.
@@ -175,13 +188,13 @@ public class EngineImpl extends Thread implements Engine {
 			log.trace(String.format("Unable to parse '%s' - '%s' as a JSON message", new String(kfkRecord.value()), Arrays.toString(kfkRecord.value())));
 			dbRecord = new HashMap<String, Object>();
 		}
-		// Add specific mandatory kafka fields
-		dbRecord.put(KFK_TOPIC, this.config.getTopic());
-		dbRecord.put(KFK_PARTITION, kfkRecord.partition());
-		dbRecord.put(KFK_OFFSET, kfkRecord.offset());
+		// Add specific mandatory kafka fields. NB: We use unmapped column name, as they will be mapped by flattenRecord
+		dbRecord.put(kfk_topic, this.config.getTopic());
+		dbRecord.put(kfk_partition, kfkRecord.partition());
+		dbRecord.put(kfk_offset, kfkRecord.offset());
 		// We add some fields. They will be unused if not present in the table during the write.
-		dbRecord.put(KFK_VALUE, kfkRecord.value());
-		dbRecord.put(KFK_KEY, kfkRecord.key());
+		dbRecord.put(kfk_value, kfkRecord.value());
+		dbRecord.put(kfk_key, kfkRecord.key());
 		try {
 			Map<String, Object> key = json.mapFrom(kfkRecord.key());
 			dbRecord.put(KEY_PREFIX, key);
@@ -189,24 +202,35 @@ public class EngineImpl extends Thread implements Engine {
 			log.debug(String.format("Unable to parse '%s' as a JSON message", Arrays.toString(kfkRecord.key())));
 		}
 		Map<String, Object> flattenDbRecord = new HashMap<String, Object>();
-		flatMap(flattenDbRecord, dbRecord, "");
+		//log.debug(String.format("Before fatten:%s", Utils.jsonPrettyString(dbRecord)));
+		flattenRecord(flattenDbRecord, dbRecord, "");
+		//log.debug(String.format("After fatten:%s", Utils.jsonPrettyString(flattenDbRecord)));
 		return flattenDbRecord;
 	}
 
 	@SuppressWarnings("unchecked")
-	private void flatMap(Map<String, Object> target, Map<String, Object> current, String prefix) {
+	private void flattenRecord(Map<String, Object> target, Map<String, Object> current, String prefix) {
 		for (Map.Entry<String, Object> entry : current.entrySet()) {
 			if (entry.getValue() instanceof Map<?, ?>) {
-				flatMap(target, (Map<String, Object>) entry.getValue(), entry.getKey() + "_");
+				flattenRecord(target, (Map<String, Object>) entry.getValue(), prefix + entry.getKey() + "_");
 			} else {
 				if (target.containsKey(prefix + entry.getKey())) {
 					log.warn(String.format("Name clash on '%s' when flattening record. Some data may be lost", prefix + entry.getKey()));
 				} else {
-					target.put((prefix + entry.getKey()).toLowerCase(), entry.getValue());
+					target.put(this.mapColName((prefix + entry.getKey())), entry.getValue());
 				}
 			}
 		}
 	}
+
+	private String mapColName(String fieldName) {
+		String colName = this.config.getColMapping().get(this.config.isPreserveCase() ? fieldName : fieldName.toLowerCase());
+		if(colName == null) {
+			colName = fieldName;
+		}
+		return this.config.isPreserveCase() ?  colName : colName.toLowerCase();
+	}
+	
 
 	private void write(List<Map<String, Object>> dataSet) {
 		try {

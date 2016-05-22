@@ -3,7 +3,9 @@ package com.kappaware.k2jdbc.config;
 import java.beans.PropertyVetoException;
 import java.net.InetSocketAddress;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
 
@@ -68,11 +70,12 @@ public class ConfigurationImpl implements Configuration {
 	private InetSocketAddress adminBindAddress;
 	private IpMatcher adminNetworkFilter;
 	private ComboPooledDataSource targetDataSource;
+	private Map<String, String> colMapping;
 
 	public ConfigurationImpl(ParametersImpl parameters) throws ConfigurationException, PropertyVetoException {
 		this.parameters = parameters;
 		//log.debug(String.format("Source brokers:'%s'", this.getBrokers()));
-		
+
 		this.consumerProperties = new Properties();
 		this.consumerProperties.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, this.parameters.getBrokers());
 		this.consumerProperties.put(ConsumerConfig.GROUP_ID_CONFIG, this.parameters.getConsumerGroup());
@@ -150,6 +153,22 @@ public class ConfigurationImpl implements Configuration {
 		this.targetDataSource.setJdbcUrl(this.parameters.getJdbcUrl());
 		this.targetDataSource.setUser(this.parameters.getDbUser());
 		this.targetDataSource.setPassword(this.parameters.getDbPassword());
+		this.colMapping = new HashMap<String, String>();
+		if (this.parameters.getColMapping() != null && this.parameters.getColMapping().trim().length() > 0) {
+			String[] sp = this.parameters.getColMapping().split(",");
+			for (String s : sp) {
+				String[] prp = s.trim().split("=");
+				if (prp.length != 2) {
+					throw new ConfigurationException(String.format("Column mapping must be as colA=fieldX. Found '%s'", s));
+				} else {
+					if(this.isPreserveCase()) {
+						this.colMapping.put(prp[1].trim(), prp[0].trim());
+					} else {
+						this.colMapping.put(prp[1].trim().toLowerCase(), prp[0].trim().toLowerCase());
+					}
+				}
+			}
+		}
 	}
 
 	enum DbType {
@@ -203,5 +222,14 @@ public class ConfigurationImpl implements Configuration {
 		return parameters.getTargetTable();
 	}
 
-	
+	@Override
+	public Map<String, String> getColMapping() {
+		return colMapping;
+	}
+
+	@Override
+	public boolean isPreserveCase() {
+		return parameters.isPreserveCase();
+	}
+
 }
