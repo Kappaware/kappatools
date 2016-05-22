@@ -24,7 +24,7 @@
     </appender>
     
     
- 	<logger name="com.kappaware"><level value="debug"/></logger>
+ 	<logger name="com.kappaware"><level value="info"/></logger>
     
     <logger name="kafka"><level value="info"/></logger>
  	<logger name="org.apache.kafka"><level value="warn"/></logger>

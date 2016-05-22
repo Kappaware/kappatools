@@ -134,10 +134,10 @@ public class EngineImpl extends Thread implements Engine {
 						List<Map<String, Object>> result = dbEngine.query(offsetQuery, new Object[] { tp.partition() });
 						Long offset = null;
 						if (result != null && result.size() >= 1 && (offset = (Long) result.get(0).get("max_offset")) != null) {
-							log.debug(String.format("Will seek to %d for partition %d", offset +1, tp.partition()));
+							log.info(String.format("Seek to offset %d for partition %d", offset +1, tp.partition()));
 							consumer.seek(tp, offset + 1);
 						} else {
-							log.debug(String.format("Will seek to beginning for partition %d", tp.partition()));
+							log.info(String.format("Seek to beginning for partition %d", tp.partition()));
 							consumer.seekToBeginning(tp);
 						}
 					} catch (Exception e) {
