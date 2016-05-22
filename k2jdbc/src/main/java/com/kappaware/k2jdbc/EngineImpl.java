@@ -16,7 +16,6 @@
 package com.kappaware.k2jdbc;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.sql.Types;
 import java.util.Arrays;
 import java.util.Collection;
@@ -40,8 +39,10 @@ import com.kappaware.k2jdbc.config.Configuration;
 import com.kappaware.k2jdbc.jdbc.DbCatalog.DbColumnDef;
 import com.kappaware.k2jdbc.jdbc.DbCatalog.DbTableDef;
 import com.kappaware.k2jdbc.jdbc.DbEngine;
+import com.kappaware.k2jdbc.jdbc.DbEngineException;
 import com.kappaware.k2jdbc.jdbc.DbEngineImpl;
 import com.kappaware.kappatools.kcommon.Engine;
+import com.kappaware.kappatools.kcommon.Utils;
 import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kappatools.kcommon.config.Settings;
 import com.kappaware.kappatools.kcommon.jetty.AdminServer;
@@ -56,7 +57,7 @@ public class EngineImpl extends Thread implements Engine {
 
 	private static final String KFK_KEY = "kfk_key";
 	private static final String KFK_VALUE = "kfk_value";
-	
+
 	private static final String KEY_PREFIX = "kfkey";
 
 	static Logger log = LoggerFactory.getLogger(EngineImpl.class);
@@ -76,11 +77,8 @@ public class EngineImpl extends Thread implements Engine {
 	private String kfk_offset;
 	private String kfk_key;
 	private String kfk_value;
-	
-	
 
-
-	public EngineImpl(Configuration config) throws ConfigurationException, SQLException {
+	public EngineImpl(Configuration config) throws ConfigurationException, DbEngineException {
 		this.config = config;
 		this.kfk_topic = this.mapColName(KFK_TOPIC);
 		this.kfk_partition = this.mapColName(KFK_PARTITION);
@@ -134,7 +132,7 @@ public class EngineImpl extends Thread implements Engine {
 						List<Map<String, Object>> result = dbEngine.query(offsetQuery, new Object[] { tp.partition() });
 						Long offset = null;
 						if (result != null && result.size() >= 1 && (offset = (Long) result.get(0).get("max_offset")) != null) {
-							log.info(String.format("Seek to offset %d for partition %d", offset +1, tp.partition()));
+							log.info(String.format("Seek to offset %d for partition %d", offset + 1, tp.partition()));
 							consumer.seek(tp, offset + 1);
 						} else {
 							log.info(String.format("Seek to beginning for partition %d", tp.partition()));
@@ -149,27 +147,32 @@ public class EngineImpl extends Thread implements Engine {
 		});
 
 		while (running) {
-			ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
-			List<Map<String, Object>> dataSet = new Vector<Map<String, Object>>();
-			for (ConsumerRecord<byte[], byte[]> record : records) {
-				if (settings.getMesson()) {
-					log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), new String(record.key()), new String(record.value())));
+			try {
+				ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
+				List<Map<String, Object>> dataSet = new Vector<Map<String, Object>>();
+				for (ConsumerRecord<byte[], byte[]> record : records) {
+					if (settings.getMesson()) {
+						log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), new String(record.key()), new String(record.value())));
+					}
+					stats.addToConsumerStats(record.key(), record.partition(), record.offset());
+					dataSet.add(this.buildDbRecord(record));
+					if (dataSet.size() >= BATCH_SIZE) {
+						dbEngine.write(this.config.getTargetTable(), dataSet);
+						dataSet = new Vector<Map<String, Object>>();
+					}
 				}
-				stats.addToConsumerStats(record.key(), record.partition(), record.offset());
-				dataSet.add(this.buildDbRecord(record));
-				if (dataSet.size() >= BATCH_SIZE) {
-					write(dataSet);
-					dataSet = new Vector<Map<String, Object>>();
+				if (dataSet.size() > 0) {
+					dbEngine.write(this.config.getTargetTable(), dataSet);
 				}
+				this.updateStats();
+			} catch (DbEngineException e) {
+				log.error(String.format("Exception while writing row '%s' in db...", Utils.jsonPrettyString(e.getRow())), e);
+				running = false;
 			}
-			if (dataSet.size() > 0) {
-				write(dataSet);
-			}
-			this.updateStats();
 		}
 		this.consumer.close();
 		this.dbEngine.close();
-		if(this.adminServer != null) { 
+		if (this.adminServer != null) {
 			try {
 				this.adminServer.halt();
 			} catch (Exception e) {
@@ -178,7 +181,7 @@ public class EngineImpl extends Thread implements Engine {
 		}
 	}
 
-	
+
 	Map<String, Object> buildDbRecord(ConsumerRecord<byte[], byte[]> kfkRecord) {
 		Map<String, Object> dbRecord;
 		// Base for dbrecord is the message value, if it is parseable as json.
@@ -225,20 +228,10 @@ public class EngineImpl extends Thread implements Engine {
 
 	private String mapColName(String fieldName) {
 		String colName = this.config.getColMapping().get(this.config.isPreserveCase() ? fieldName : fieldName.toLowerCase());
-		if(colName == null) {
+		if (colName == null) {
 			colName = fieldName;
 		}
-		return this.config.isPreserveCase() ?  colName : colName.toLowerCase();
-	}
-	
-
-	private void write(List<Map<String, Object>> dataSet) {
-		try {
-			dbEngine.write(this.config.getTargetTable(), dataSet);
-		} catch (SQLException | IOException e) {
-			log.error("Exception while writing in db...", e);
-			this.running = false;
-		}
+		return this.config.isPreserveCase() ? colName : colName.toLowerCase();
 	}
 
 	void updateStats() {

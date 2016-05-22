@@ -13,39 +13,30 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.kappaware.k2jdbc.config;
+package com.kappaware.k2jdbc.jdbc;
 
-import java.net.InetSocketAddress;
 import java.util.Map;
-import java.util.Properties;
 
-import javax.sql.DataSource;
+@SuppressWarnings("serial")
+public class DbEngineException extends Exception {
+	Map<String, Object>  row = null;
 
-import com.kappaware.kappatools.kcommon.config.Settings;
-import com.kappaware.kappatools.kcommon.jetty.IpMatcher;
+	public DbEngineException(String message) {
+		super(message);
+	}
 
-public interface Configuration {
+	public DbEngineException(String message, Throwable t) {
+		super(message, t);
+	}
 
-	String getBrokers();
+	public DbEngineException(String message, Throwable t, Map<String, Object> row) {
+		super(message, t);
+		this.row = row;
+	}
 
-	String getTopic();
+	public Map<String, Object> getRow() {
+		return row;
+	}
 
-	String getConsumerGroup();
-
-	Properties getConsumerProperties();
 	
-	Settings getSettings();
-
-	InetSocketAddress getAdminBindAddress();
-
-	IpMatcher getAdminNetworkFilter();
-
-	DataSource getTargetDataSource();
-
-	String getTargetTable();
-
-	Map<String, String> getColMapping();
-
-	boolean isPreserveCase();
-
 }

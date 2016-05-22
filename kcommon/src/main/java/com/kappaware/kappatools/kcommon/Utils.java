@@ -98,17 +98,18 @@ public class Utils {
 		}
 	}
 
-
-	
 	// For quick and dirty debug purpose
 	static JSON djson = JSON.std.with(Feature.PRETTY_PRINT_OUTPUT);
 
 	public static String jsonPrettyString(Map<String, Object> m) {
-		try {
-			return djson.asString(m);
-		} catch (IOException e) {
-			return "ERROR ON JSON GENERATION";
+		if (m != null) {
+			try {
+				return djson.asString(m);
+			} catch (IOException e) {
+				return "ERROR ON JSON GENERATION";
+			}
+		} else {
+			return "null";
 		}
 	}
-
 }

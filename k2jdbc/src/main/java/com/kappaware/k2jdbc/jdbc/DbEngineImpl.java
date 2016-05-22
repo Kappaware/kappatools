@@ -1,6 +1,20 @@
+/*
+ * Copyright (C) 2016 BROADSoftware
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.kappaware.k2jdbc.jdbc;
 
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -49,11 +63,12 @@ public class DbEngineImpl implements DbEngine {
 	 * 
 	 */
 	@Override
-	public void write(String tableName, List<Map<String, Object>> dataSet) throws SQLException, IOException {
+	public void write(String tableName, List<Map<String, Object>> dataSet) throws DbEngineException {
 		DbTableDef tableDef = this.getDbCatalog().getTableDef(tableName);
 		Connection connection = null;
 		PreparedStatement statement = null;
 		String sql = null;
+		Map<String, Object> lastRow = null;
 		try {
 			connection = this.dataSource.getConnection();
 			connection.setAutoCommit(false);
@@ -62,6 +77,7 @@ public class DbEngineImpl implements DbEngine {
 				if (row.size() == 0) {
 					log.warn(String.format("Row#%d is empty. Skipped", rowNum));
 				} else {
+					lastRow = row;
 					List<String> fieldNames = new Vector<String>(row.keySet()); // To fix field ordering
 					StringBuffer fields = new StringBuffer();
 					StringBuffer params = new StringBuffer();
@@ -98,7 +114,7 @@ public class DbEngineImpl implements DbEngine {
 						}
 						int x = statement.executeUpdate();
 						if (x != 1) {
-							throw new SQLException(String.format("Insert statement returned %d rows affected!! - Should be 1 (row# %d)", x, rowNum));
+							throw new DbEngineException(String.format("Insert statement returned %d rows affected!! - Should be 1 (row# %d)", x, rowNum));
 						}
 						statement.close();
 						statement = null;
@@ -114,8 +130,7 @@ public class DbEngineImpl implements DbEngine {
 				} catch (SQLException e) {
 				}
 			}
-			log.error(String.format("Error on SQL write. sql='%s' => %s", sql, t.getMessage()));
-			throw t;
+			throw new DbEngineException(String.format("Error on SQL write. sql='%s' =>", sql), t, lastRow);
 		} finally {
 			if (statement != null) {
 				try {
@@ -134,7 +149,7 @@ public class DbEngineImpl implements DbEngine {
 	}
 
 	@Override
-	public List<Map<String, Object>> query(String query, Object[] params) throws SQLException {
+	public List<Map<String, Object>> query(String query, Object[] params) throws DbEngineException {
 		Connection connection = null;
 		PreparedStatement statement = null;
 		List<Map<String, Object>> recordSet = null;
@@ -160,6 +175,8 @@ public class DbEngineImpl implements DbEngine {
 				recordSet.add(record);
 			}
 			return recordSet;
+		} catch(SQLException e) {
+			throw new DbEngineException(String.format("Exception on query:'%s'", query), e);
 		} finally {
 			if (recordSet == null) {
 				log.debug(String.format("Execute query: '%s' (params:[%s]): Failed", query, Arrays.toString(params)));
@@ -189,7 +206,7 @@ public class DbEngineImpl implements DbEngine {
 	 */
 
 	@Override
-	public int execute(String sql) throws SQLException {
+	public int execute(String sql) throws DbEngineException {
 		Connection connection = null;
 		Statement statement = null;
 		Integer r = null;
@@ -198,6 +215,8 @@ public class DbEngineImpl implements DbEngine {
 			statement = connection.createStatement();
 			r = statement.executeUpdate(sql);
 			return r;
+		} catch(SQLException e) {
+			throw new DbEngineException(String.format("Exception on execution:'%s'", sql), e);
 		} finally {
 			if (r == null) {
 				log.debug(String.format("Execute cmd: '%s': Failed", sql));
@@ -241,7 +260,9 @@ public class DbEngineImpl implements DbEngine {
 				switch (jdbcType) {
 					case Types.VARCHAR:
 					case Types.CHAR:
-						statement.setString(pos, (value instanceof byte[]) ? new String((byte[]) value) : value.toString());
+						String s =  (value instanceof byte[]) ? new String((byte[]) value) : value.toString();
+						s = s.replace("\0", "\\0");	// Patch for postgresql, which does not accept null character
+						statement.setString(pos, s);
 					break;
 					case Types.NUMERIC:
 						statement.setBigDecimal(pos, (value instanceof BigDecimal) ? (BigDecimal) value : new BigDecimal(value.toString()));
