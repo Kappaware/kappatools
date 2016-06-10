@@ -50,6 +50,7 @@ public class EngineImpl extends Thread implements Engine {
 	private static final String KFK_PARTITION = "kfk_partition";
 	private static final String KFK_OFFSET = "kfk_offset";
 
+	private static final String KFK_TIMESTAMP = "kfk_timestamp";
 	private static final String KFK_KEY = "kfk_key";
 	private static final String KFK_VALUE = "kfk_value";
 
@@ -70,6 +71,7 @@ public class EngineImpl extends Thread implements Engine {
 	private String kfk_topic;
 	private String kfk_partition;
 	private String kfk_offset;
+	private String kfk_timestamp;
 	private String kfk_key;
 	private String kfk_value;
 
@@ -78,6 +80,7 @@ public class EngineImpl extends Thread implements Engine {
 		this.kfk_topic = this.mapColName(KFK_TOPIC);
 		this.kfk_partition = this.mapColName(KFK_PARTITION);
 		this.kfk_offset = this.mapColName(KFK_OFFSET);
+		this.kfk_timestamp = this.mapColName(KFK_TIMESTAMP);
 		this.kfk_key = this.mapColName(KFK_KEY);
 		this.kfk_value = this.mapColName(KFK_VALUE);
 		consumer = new KafkaConsumer<byte[], byte[]>(config.getConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
@@ -120,7 +123,7 @@ public class EngineImpl extends Thread implements Engine {
 				ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
 				for (ConsumerRecord<byte[], byte[]> record : records) {
 					if (settings.getMesson()) {
-						log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), new String(record.key()), new String(record.value())));
+						log.info(String.format("part:offset=%d:%d, timestamp=%s, key='%s', value='%s'\n", record.partition(), record.offset(), Utils.printIsoDateTime(record.timestamp()), new String(record.key()), new String(record.value())));
 					}
 					stats.addToConsumerStats(record.key(), record.partition(), record.offset());
 					this.dbTable.write(this.buildDbRecord(record));
@@ -157,8 +160,9 @@ public class EngineImpl extends Thread implements Engine {
 		dbRecord.put(kfk_topic, this.config.getTopic());
 		dbRecord.put(kfk_partition, kfkRecord.partition());
 		dbRecord.put(kfk_offset, kfkRecord.offset());
-		dbRecord.put(kfk_value, kfkRecord.value());
 		dbRecord.put(kfk_key, kfkRecord.key());
+		dbRecord.put(kfk_timestamp, kfkRecord.timestamp());
+		dbRecord.put(kfk_value, kfkRecord.value());
 		try {
 			Map<String, Object> key = json.mapFrom(kfkRecord.key());
 			dbRecord.put(KEY_PREFIX, key);

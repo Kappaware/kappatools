@@ -29,6 +29,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import com.kappaware.kappatools.kcommon.Engine;
+import com.kappaware.kappatools.kcommon.Utils;
 import com.kappaware.kappatools.kcommon.config.Settings;
 import com.kappaware.kappatools.kcommon.stats.AbstractStats;
 import com.kappaware.kcons.config.Configuration;
@@ -70,7 +71,7 @@ public class EngineImpl extends Thread implements Engine {
 			ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
 			for (ConsumerRecord<byte[], byte[]> record : records) {
 				if (settings.getMesson()) {
-					log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'\n", record.partition(), record.offset(), new String(record.key()), new String(record.value())));
+					log.info(String.format("part:offset=%d:%d, timestamp=%s, key='%s', value='%s'\n", record.partition(), record.offset(), Utils.printIsoDateTime(record.timestamp()), new String(record.key()), new String(record.value())));
 				}
 				stats.addToConsumerStats(record.key(), record.partition(), record.offset());
 			}

@@ -83,13 +83,13 @@ public class EngineImpl extends Thread implements Engine {
 				}
 				String value = String.format("Message #%d for %s from %s", extTs.getCounter(), key.getRecipient(), extTs.getGateId());
 				int partition = Utils.abs(Utils.murmur2(key.getRecipient().getBytes())) % partitionCount;
-				ProducerRecord<String, String> record = new ProducerRecord<String, String>(this.config.getTopic(), partition, keyString, value);
+				ProducerRecord<String, String> record = new ProducerRecord<String, String>(this.config.getTopic(), partition, key.getExtTs().getTimestamp(), keyString, value);
 				producer.send(record, new MyCallback(record) {
 					@Override
 					public void onCompletion(RecordMetadata metadata, Exception exception) {
 						stats.addToProducerStats(this.record.key().getBytes(), metadata.partition(), metadata.offset());
 						if (settings.getMesson()) {
-							log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'", metadata.partition(), metadata.offset(), record.key(), record.value()));
+							log.info(String.format("part:offset=%d:%d, timestamp=%s, key='%s', value='%s'", metadata.partition(), metadata.offset(), com.kappaware.kappatools.kcommon.Utils.printIsoDateTime(record.timestamp()), record.key(), record.value()));
 						}
 					}
 				});

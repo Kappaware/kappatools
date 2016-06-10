@@ -21,6 +21,10 @@ plugins {
 
 defaultTasks 'rpm'
 
+/*
+Note we 'force' kafka 0.10.0.0, to overwrite 0.9.0 pulled by kafka-unit, as mixing 0.10 client with 0.9 server in the same class path 
+generated conflict on shared part (org.apache.kafka.common.config.AbstractConfig)
+*/
 dependencies {
 	compile "org.slf4j:slf4j-log4j12:$sl4jLog4jVersion"
     compile "log4j:log4j:$log4jVersion"
@@ -28,6 +32,7 @@ dependencies {
     compile "org.eclipse.jetty:jetty-servlet:$jettyVersion"
     compile project(':kcommon')
     testCompile "junit:junit:$junitVersion"
+    testCompile 'org.apache.kafka:kafka_2.11:0.10.0.0'
     testCompile "info.batey.kafka:kafka-unit:$kafkaUnitVersion"
     testCompile "org.eclipse.jetty:jetty-client:$jettyVersion"
     

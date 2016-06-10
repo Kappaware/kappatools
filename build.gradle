@@ -20,7 +20,9 @@ defaultTasks 'all'
  
 task all(type: GradleBuild) {
 	tasks = [
-		':k2K:fatJar', 
+		':k2cassandra:fatJar', 
+		':k2jdbc:fatJar', 
+		':k2k:fatJar', 
 		':kcons:fatJar', 
 		':kgen:fatJar', 
 		':king:rpm' 

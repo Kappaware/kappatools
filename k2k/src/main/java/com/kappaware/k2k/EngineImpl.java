@@ -18,6 +18,7 @@ package com.kappaware.k2k;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -28,6 +29,7 @@ import org.apache.kafka.clients.producer.Callback;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
+import org.apache.kafka.common.PartitionInfo;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.ByteArrayDeserializer;
 import org.apache.kafka.common.serialization.ByteArraySerializer;
@@ -38,6 +40,7 @@ import org.slf4j.LoggerFactory;
 import com.fasterxml.jackson.jr.ob.JSON;
 import com.kappaware.k2k.config.Configuration;
 import com.kappaware.kappatools.kcommon.Engine;
+import com.kappaware.kappatools.kcommon.config.ConfigurationException;
 import com.kappaware.kappatools.kcommon.config.Settings;
 import com.kappaware.kappatools.kcommon.stats.AbstractStats;
 
@@ -45,7 +48,6 @@ public class EngineImpl extends Thread implements Engine {
 	Logger log = LoggerFactory.getLogger(EngineImpl.class);
 
 	private static JSON json = JSON.std;
-
 
 	private boolean running = true;
 	private Configuration config;
@@ -56,23 +58,29 @@ public class EngineImpl extends Thread implements Engine {
 	private long lastSampling = 0L;
 	private int targetPartitionCount;
 
-
-	public EngineImpl(Configuration config) {
+	public EngineImpl(Configuration config) throws ConfigurationException {
 		this.config = config;
 		this.consumer = new KafkaConsumer<byte[], byte[]>(config.getConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
-		this.producer = new KafkaProducer<byte[], byte[]>(config.getProducerProperties(),  new ByteArraySerializer(), new ByteArraySerializer());
-		this.stats = new Stats(producer.partitionsFor(this.config.getTargetTopic()));
-		this.targetPartitionCount = this.producer.partitionsFor(this.config.getTargetTopic()).size();
+		this.producer = new KafkaProducer<byte[], byte[]>(config.getProducerProperties(), new ByteArraySerializer(), new ByteArraySerializer());
+		List<PartitionInfo> partitionInfo;
+		try {
+			partitionInfo = producer.partitionsFor(this.config.getTargetTopic());
+		} catch (Throwable t) {
+			throw new ConfigurationException(String.format("Unable to connect to target topic '%s' (brokers:'%s')", this.config.getTargetTopic(), this.config.getTargetBrokers()));
+		}
+		this.stats = new Stats(partitionInfo);
+		this.targetPartitionCount = partitionInfo.size();
 		this.settings = config.getSettings();
 	}
 
 	abstract class MyCallback implements Callback {
 		ConsumerRecord<byte[], byte[]> consumerRecord;
+
 		MyCallback(ConsumerRecord<byte[], byte[]> consumerRecord) {
 			this.consumerRecord = consumerRecord;
 		}
 	}
-	
+
 	public void run() {
 		consumer.subscribe(Arrays.asList(new String[] { config.getSourceTopic() }), new ConsumerRebalanceListener() {
 
@@ -92,13 +100,13 @@ public class EngineImpl extends Thread implements Engine {
 			for (ConsumerRecord<byte[], byte[]> consumerRecord : records) {
 				this.stats.addToConsumerStats(consumerRecord.key(), consumerRecord.partition(), consumerRecord.offset());
 				int targetPartition = this.computeTargetPartition(consumerRecord.key());
-				ProducerRecord<byte[], byte[]> producerRecord = new ProducerRecord<byte[], byte[]>(this.config.getTargetTopic(), targetPartition, consumerRecord.key(), consumerRecord.value());
+				ProducerRecord<byte[], byte[]> producerRecord = new ProducerRecord<byte[], byte[]>(this.config.getTargetTopic(), targetPartition, consumerRecord.timestamp(), consumerRecord.key(), consumerRecord.value());
 				producer.send(producerRecord, new MyCallback(consumerRecord) {
 					@Override
 					public void onCompletion(RecordMetadata metadata, Exception exception) {
 						stats.addToProducerStats(this.consumerRecord.key(), metadata.partition(), metadata.offset());
 						if (settings.getMesson()) {
-							log.info(String.format("%d:%d => %d:%d, key = '%s', value = '%s'", consumerRecord.partition(), consumerRecord.offset(), metadata.partition(), metadata.offset(), new String(consumerRecord.key()), new String(consumerRecord.value())));
+							log.info(String.format("%d:%d => %d:%d, timestamp=%s, key='%s', value='%s'", consumerRecord.partition(), consumerRecord.offset(), metadata.partition(), metadata.offset(), com.kappaware.kappatools.kcommon.Utils.printIsoDateTime(consumerRecord.timestamp()), new String(consumerRecord.key()), new String(consumerRecord.value())));
 						}
 					}
 				});
@@ -113,14 +121,16 @@ public class EngineImpl extends Thread implements Engine {
 
 	static class Pk {
 		private String partitionKey;
+
 		public String getPartitionKey() {
 			return partitionKey;
 		}
+
 		public void setPartitionKey(String partitionKey) {
 			this.partitionKey = partitionKey;
 		}
 	}
-	
+
 	private int computeTargetPartition(byte[] key) {
 		byte[] pselector = null;
 		try {
@@ -132,26 +142,23 @@ public class EngineImpl extends Thread implements Engine {
 		}
 		return Utils.abs(Utils.murmur2(pselector)) % this.targetPartitionCount;
 	}
-	
-	
+
 	void updateStats(boolean forceDisplay) {
 		long now = System.currentTimeMillis();
 		if (this.lastSampling + this.settings.getSamplingPeriod() < now) {
 			this.lastSampling = now;
 			this.stats.tick();
-			if(this.settings.getStatson()) {
+			if (this.settings.getStatson()) {
 				log.info("Source: " + this.stats.getConsumerStats().toString());
 				log.info("Target: " + this.stats.getProducerStats().toString());
 			}
 		}
 	}
 
-
 	void halt() {
 		this.running = false;
 	}
-	
-	
+
 	@Override
 	public AbstractStats getStats() {
 		return this.stats;
@@ -161,9 +168,5 @@ public class EngineImpl extends Thread implements Engine {
 	public Settings getSettings() {
 		return this.settings;
 	}
-	
-
-	
-
 
 }

@@ -202,7 +202,7 @@ public class KingServlet extends HttpServlet {
 			} catch (IOException e) {
 				throw new RuntimeException(String.format("Unable to generate a json string from %s (class:%s) -> %s", key.toString(), key.getClass().getName(), e));
 			}
-			ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<String, byte[]>(this.config.getTopic(), partition, keyString, requestContext.readBuffer.getContent());
+			ProducerRecord<String, byte[]> producerRecord = new ProducerRecord<String, byte[]>(this.config.getTopic(), partition, key.getExtTs().getTimestamp(), keyString, requestContext.readBuffer.getContent());
 			this.producer.send(producerRecord, new MyCallback(producerRecord) {
 				@Override
 				public void onCompletion(RecordMetadata metadata, Exception e) {
@@ -214,7 +214,7 @@ public class KingServlet extends HttpServlet {
 					}
 					engine.addToStats(this.record.key().getBytes(), metadata.partition(), metadata.offset());
 					if (engine.isMesson()) {
-						log.info(String.format("part:offset = %d:%d, key = '%s', value = '%s'", metadata.partition(), metadata.offset(), record.key(), new String(record.value())));
+						log.info(String.format("part:offset=%d:%d, timestamp=%s, key='%s', value='%s'", metadata.partition(), metadata.offset(), record.timestamp(), record.key(), new String(record.value())));
 					}
 					requestContext.response.setStatus(HttpServletResponse.SC_OK);
 					requestContext.asyncContext.complete();
