@@ -26,7 +26,7 @@ public class DbEngineImpl implements DbEngine {
 	public DbTable getTable(String name) throws DbEngineException {
 		DbTable dbTable = this.tableByName.get(name);
 		if (dbTable == null) {
-			String[] namea = name.split(".");
+			String[] namea = name.split("\\.");
 			if (namea.length != 2) {
 				throw new DbEngineException(String.format("'%s' is not a qualified table name. It must be in the form <keySpace>.<tableName>", name));
 			}
