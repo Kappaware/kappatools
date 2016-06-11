@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2016 BROADSoftware
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *    http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.kappaware.kcons.config;
 
 import java.io.ByteArrayOutputStream;
@@ -32,6 +47,7 @@ public class ParametersImpl implements Parameters {
 
 	private String adminEndpoint;
 	private String adminAllowedNetworks;
+	private long count;
 	
 	static OptionParser parser = new OptionParser();
 	static {
@@ -52,6 +68,9 @@ public class ParametersImpl implements Parameters {
 	static OptionSpec<String> ADMIN_ENDPOINT_OPT = parser.accepts("adminEndpoint", "Admin REST endoint").withRequiredArg().describedAs("[Interface:]port").ofType(String.class);
 	static OptionSpec<String> ADMIN_ALLOWED_NETWORKS_OPT = parser.accepts("adminAllowedNetworks", "Admin allowed network").withRequiredArg().describedAs("net1/cidr1,net2/cidr2,...").ofType(String.class).defaultsTo("127.0.0.1/32");;
 
+	static OptionSpec<Long> COUNT_OPT = parser.accepts("count", "Exit after <count> message").withRequiredArg().describedAs("count").ofType(Long.class).defaultsTo(Long.MAX_VALUE);
+	
+	
 	@SuppressWarnings("serial")
 	private static class MyOptionException extends Exception {
 
@@ -82,6 +101,8 @@ public class ParametersImpl implements Parameters {
 
 			this.adminEndpoint = result.valueOf(ADMIN_ENDPOINT_OPT);
 			this.adminAllowedNetworks = result.valueOf(ADMIN_ALLOWED_NETWORKS_OPT);
+			
+			this.count = result.valueOf(COUNT_OPT);
 
 		} catch (OptionException | MyOptionException t) {
 			throw new ConfigurationException(usage(t.getMessage()));
@@ -150,6 +171,10 @@ public class ParametersImpl implements Parameters {
 
 	public String getAdminAllowedNetworks() {
 		return adminAllowedNetworks;
+	}
+
+	public long getCount() {
+		return count;
 	}
 
 

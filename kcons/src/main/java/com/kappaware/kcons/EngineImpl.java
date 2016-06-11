@@ -17,6 +17,8 @@ package com.kappaware.kcons;
 
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.apache.kafka.clients.consumer.ConsumerRebalanceListener;
@@ -44,7 +46,6 @@ public class EngineImpl extends Thread implements Engine {
 	private long lastSampling = 0L;
 	private Settings settings;
 
-	
 	public EngineImpl(Configuration config) {
 		this.config = config;
 		consumer = new KafkaConsumer<byte[], byte[]>(config.getConsumerProperties(), new ByteArrayDeserializer(), new ByteArrayDeserializer());
@@ -68,25 +69,42 @@ public class EngineImpl extends Thread implements Engine {
 		});
 
 		while (running) {
+			long count = 0;
 			ConsumerRecords<byte[], byte[]> records = consumer.poll(100);
+			boolean draining = false;
+			Set<Integer> drainedPartition = new HashSet<Integer>();
 			for (ConsumerRecord<byte[], byte[]> record : records) {
-				if (settings.getMesson()) {
-					log.info(String.format("part:offset=%d:%d, timestamp=%s, key='%s', value='%s'\n", record.partition(), record.offset(), Utils.printIsoDateTime(record.timestamp()), new String(record.key()), new String(record.value())));
+				if (++count > this.config.getCount() && !draining) {
+					log.info(String.format("Exiting as event count (%d) is reached", this.config.getCount()));
+					this.running = false;
+					draining = true;
 				}
-				stats.addToConsumerStats(record.key(), record.partition(), record.offset());
+				if (draining) {
+					int p = record.partition();
+					if (!drainedPartition.contains(p)) {
+						drainedPartition.add(p);
+						consumer.seek(new TopicPartition(record.topic(), record.partition()), record.offset());
+						log.info(String.format("Topic %s  Partition %d -> Next record: offset:%d   timestamp:%s", record.topic(), record.partition(), record.offset(), Utils.printIsoDateTime(record.timestamp())));
+					}
+				} else {
+					if (settings.getMesson()) {
+						log.info(String.format("part:offset=%d:%d, timestamp=%s, key='%s', value='%s'\n", record.partition(), record.offset(), Utils.printIsoDateTime(record.timestamp()), new String(record.key()), new String(record.value())));
+					}
+					stats.addToConsumerStats(record.key(), record.partition(), record.offset());
+				}
 			}
 			this.updateStats("", false);
 		}
 		this.consumer.commitSync();
 		this.consumer.close();
 	}
-	
+
 	void updateStats(String prefix, boolean forceDisplay) {
 		long now = System.currentTimeMillis();
 		if (this.lastSampling + this.settings.getSamplingPeriod() < now) {
 			this.lastSampling = now;
 			this.stats.tick();
-			if(this.settings.getStatson()) {
+			if (this.settings.getStatson()) {
 				log.info(this.stats.getConsumerStats().toString());
 			}
 		}
@@ -96,7 +114,6 @@ public class EngineImpl extends Thread implements Engine {
 		this.running = false;
 	}
 
-	
 	@Override
 	public AbstractStats getStats() {
 		return this.stats;
@@ -106,5 +123,5 @@ public class EngineImpl extends Thread implements Engine {
 	public Settings getSettings() {
 		return this.settings;
 	}
-	
+
 }
